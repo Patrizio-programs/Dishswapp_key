@@ -7,6 +7,12 @@
     "url": "https://github.com/Thinkmill/keystatic/",
     "directory": "templates/astro"
   },
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
   "dependencies": {
     "@astrojs/markdoc": "^2.0.1",
     "@astrojs/node": "^11.0.0",
