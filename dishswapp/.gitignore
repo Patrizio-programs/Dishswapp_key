@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Local Astro cache and runtime files
+.astro/
+
+# Environment variables (keep your secrets private)
+.env
+.env.*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs and runtime data
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.log
