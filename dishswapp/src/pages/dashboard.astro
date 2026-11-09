@@ -30,12 +30,20 @@ import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import RecipeCard from '../components/RecipeCard.astro';
-import { Show } from '@clerk/astro/components';
 import { getCollection } from 'astro:content';
 
 // ---- Server-side auth (Clerk Astro) -------------------------------------
 const { isAuthenticated } = Astro.locals.auth();
-const user = isAuthenticated ? await Astro.locals.currentUser() : null;
+
+if (!isAuthenticated) {
+  return Astro.redirect('/login');
+}
+
+const user = await Astro.locals.currentUser();
+
+if (!user) {
+  return Astro.redirect('/login');
+}
 
 // ---- Pull + filter the user's recipes -----------------------------------
 const allRecipes = await getCollection('recipes');
@@ -68,8 +76,7 @@ const displayName = user
 <Layout title="Dashboard | DishSwapp">
   <Navbar />
 
-  <Show when="signed-in">
-    <main class="dashboard">
+  <main class="dashboard">
       <!-- ===================== Header band ===================== -->
       <section class="dash-header">
         <div class="ds-container">
@@ -158,15 +165,7 @@ const displayName = user
           </div>
         )}
       </section>
-    </main>
-
-    <!-- Signed-out fallback: bounce to the Clerk sign-in page. -->
-    <div slot="fallback">
-      <script is:inline>
-        window.location.replace('/login');
-      </script>
-    </div>
-  </Show>
+  </main>
 
   <Footer />
 </Layout>
