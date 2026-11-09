@@ -11,6 +11,12 @@ const recipes = await getCollection('recipes');
 const sortedRecipes = recipes.sort((a, b) =>
   a.data.title.localeCompare(b.data.title)
 );
+
+const allTags = [
+  ...new Set(
+    recipes.flatMap((recipe) => recipe.data.tags ?? [])
+  ),
+].sort((a, b) => a.localeCompare(b));
 ---
 
 <Layout title="Recipes | DishSwapp">
@@ -28,33 +34,169 @@ const sortedRecipes = recipes.sort((a, b) =>
     </section>
 
     <section class="ds-container recipes-section">
+
       <div class="recipes-heading">
         <div>
           <h2>All Recipes</h2>
-          <p>{sortedRecipes.length} recipes to explore</p>
+          <p id="recipe-count" aria-live="polite">
+            {sortedRecipes.length} recipes to explore
+          </p>
         </div>
       </div>
 
       {sortedRecipes.length > 0 ? (
-        <div class="recipes-grid">
-          {sortedRecipes.map((recipe) => (
-            <RecipeCard
-  recipe={recipe}
-  href={`/recipes/${recipe.id}/`}
-/>
-          ))}
-        </div>
+        <>
+          <div class="recipe-filters">
+
+            <div class="filter-search">
+              <label for="recipe-search">Search recipes</label>
+              <div class="search-input-wrapper">
+                <i class="bi bi-search"></i>
+                <input
+                  type="search"
+                  id="recipe-search"
+                  placeholder="Search by name or ingredient..."
+                />
+              </div>
+            </div>
+
+            <div class="filter-select">
+              <label for="cuisine-filter">Cuisine</label>
+              <select id="cuisine-filter">
+                <option value="all">All cuisines</option>
+                {allTags.map((tag) => (
+                  <option value={tag.toLowerCase()}>{tag}</option>
+                ))}
+              </select>
+            </div>
+
+            <div class="filter-select">
+              <label for="difficulty-filter">Difficulty</label>
+              <select id="difficulty-filter">
+                <option value="all">All difficulties</option>
+                <option value="easy">Easy</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+
+            <button type="button" id="clear-filters">
+              Clear filters
+            </button>
+
+          </div>
+
+          <div class="recipes-grid" id="recipes-grid">
+            {sortedRecipes.map((recipe) => {
+              const searchableContent = [
+                recipe.data.title,
+                recipe.data.description ?? '',
+                ...(recipe.data.ingredients ?? []),
+                ...(recipe.data.tags ?? []),
+              ].join(' ').toLowerCase();
+
+              const tags = (recipe.data.tags ?? [])
+                .map((tag) => tag.toLowerCase())
+                .join('|');
+
+              return (
+                <div
+                  class="recipe-item"
+                  data-search={searchableContent}
+                  data-tags={tags}
+                  data-difficulty={recipe.data.difficulty ?? 'none'}
+                >
+                  <RecipeCard
+                    recipe={recipe}
+                    href={`/recipes/${recipe.id}/`}
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          <div class="no-results" id="no-results" hidden>
+            <h3>No matching recipes</h3>
+            <p>Try changing your search or filters.</p>
+          </div>
+        </>
       ) : (
         <div class="empty-recipes">
           <h3>No recipes yet</h3>
           <p>Check back soon for new recipes!</p>
         </div>
       )}
+
     </section>
   </main>
 
   <Footer />
 </Layout>
+
+<script>
+  const searchInput = document.querySelector<HTMLInputElement>('#recipe-search');
+  const cuisineFilter = document.querySelector<HTMLSelectElement>('#cuisine-filter');
+  const difficultyFilter = document.querySelector<HTMLSelectElement>('#difficulty-filter');
+  const clearButton = document.querySelector<HTMLButtonElement>('#clear-filters');
+  const recipeItems = Array.from(
+    document.querySelectorAll<HTMLElement>('.recipe-item')
+  );
+  const recipeCount = document.querySelector<HTMLElement>('#recipe-count');
+  const noResults = document.querySelector<HTMLElement>('#no-results');
+
+  function filterRecipes() {
+    if (!searchInput || !cuisineFilter || !difficultyFilter) return;
+
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    const selectedCuisine = cuisineFilter.value;
+    const selectedDifficulty = difficultyFilter.value;
+
+    let visibleCount = 0;
+
+    recipeItems.forEach((item) => {
+      const searchableContent = item.dataset.search ?? '';
+      const tags = (item.dataset.tags ?? '').split('|');
+      const difficulty = item.dataset.difficulty ?? 'none';
+
+      const matchesSearch = searchableContent.includes(searchTerm);
+
+      const matchesCuisine =
+        selectedCuisine === 'all' || tags.includes(selectedCuisine);
+
+      const matchesDifficulty =
+        selectedDifficulty === 'all' ||
+        difficulty === selectedDifficulty;
+
+      const isVisible =
+        matchesSearch && matchesCuisine && matchesDifficulty;
+
+      item.hidden = !isVisible;
+
+      if (isVisible) visibleCount++;
+    });
+
+    if (recipeCount) {
+      recipeCount.textContent =
+        `${visibleCount} ${visibleCount === 1 ? 'recipe' : 'recipes'} found`;
+    }
+
+    if (noResults) {
+      noResults.hidden = visibleCount !== 0;
+    }
+  }
+
+  searchInput?.addEventListener('input', filterRecipes);
+  cuisineFilter?.addEventListener('change', filterRecipes);
+  difficultyFilter?.addEventListener('change', filterRecipes);
+
+  clearButton?.addEventListener('click', () => {
+    if (searchInput) searchInput.value = '';
+    if (cuisineFilter) cuisineFilter.value = 'all';
+    if (difficultyFilter) difficultyFilter.value = 'all';
+
+    filterRecipes();
+  });
+</script>
 
 <style>
   .recipes-header {
@@ -100,12 +242,88 @@ const sortedRecipes = recipes.sort((a, b) =>
     margin: 0;
   }
 
+  .recipe-filters {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 15px;
+    align-items: end;
+    padding: 22px;
+    margin-bottom: 30px;
+    background: var(--ds-cream);
+    border-radius: var(--ds-radius-md);
+  }
+
+  .recipe-filters label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ds-dark);
+    margin-bottom: 7px;
+  }
+
+  .search-input-wrapper {
+    position: relative;
+  }
+
+  .search-input-wrapper i {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ds-muted);
+  }
+
+  .recipe-filters input,
+  .recipe-filters select {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-sm);
+    background: white;
+    color: var(--ds-dark);
+    font: inherit;
+    font-size: 0.9rem;
+  }
+
+  .recipe-filters input {
+    padding-left: 38px;
+  }
+
+  .recipe-filters input:focus,
+  .recipe-filters select:focus {
+    outline: 2px solid var(--ds-teal);
+    outline-offset: 2px;
+  }
+
+  #clear-filters {
+    min-height: 44px;
+    padding: 10px 16px;
+    border: 1px solid var(--ds-teal);
+    border-radius: var(--ds-radius-sm);
+    background: transparent;
+    color: var(--ds-teal);
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  #clear-filters:hover {
+    background: var(--ds-teal);
+    color: white;
+  }
+
   .recipes-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 25px;
   }
 
+  .recipe-item[hidden] {
+    display: none;
+  }
+
+  .no-results,
   .empty-recipes {
     text-align: center;
     padding: 60px 20px;
@@ -113,16 +331,22 @@ const sortedRecipes = recipes.sort((a, b) =>
     border-radius: var(--ds-radius-md);
   }
 
+  .no-results h3,
   .empty-recipes h3 {
     font-family: var(--ds-heading-font);
   }
 
+  .no-results p,
   .empty-recipes p {
     color: var(--ds-muted);
     margin-bottom: 0;
   }
 
   @media (max-width: 991px) {
+    .recipe-filters {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .recipes-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -131,6 +355,11 @@ const sortedRecipes = recipes.sort((a, b) =>
   @media (max-width: 575px) {
     .recipes-header {
       padding: 55px 15px;
+    }
+
+    .recipe-filters {
+      grid-template-columns: 1fr;
+      padding: 16px;
     }
 
     .recipes-grid {
