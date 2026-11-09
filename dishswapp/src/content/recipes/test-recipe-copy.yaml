@@ -1,0 +1,15 @@
+title: TEST RECIPE
+ingredients:
+  - TEST 1
+  - TEST 2
+instructions:
+  - JUST A TEST STEP
+  - ANOTHER TEST STEP
+tags:
+  - jamaican
+difficulty: easy
+description: TEST
+author: ADMIN
+prepTime: 1
+cookTime: 1
+servings: 1

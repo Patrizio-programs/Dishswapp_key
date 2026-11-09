@@ -115,6 +115,21 @@ const allTags = [
             })}
           </div>
 
+<nav class="pagination" id="recipe-pagination" aria-label="Recipe pages" hidden>
+  <button type="button" id="previous-page" disabled>
+    <i class="bi bi-chevron-left"></i>
+    Previous
+  </button>
+
+  <span id="page-info">Page 1 of 1</span>
+
+  <button type="button" id="next-page">
+    Next
+    <i class="bi bi-chevron-right"></i>
+  </button>
+</nav>
+
+
           <div class="no-results" id="no-results" hidden>
             <h3>No matching recipes</h3>
             <p>Try changing your search or filters.</p>
@@ -134,68 +149,140 @@ const allTags = [
 </Layout>
 
 <script>
-  const searchInput = document.querySelector<HTMLInputElement>('#recipe-search');
-  const cuisineFilter = document.querySelector<HTMLSelectElement>('#cuisine-filter');
-  const difficultyFilter = document.querySelector<HTMLSelectElement>('#difficulty-filter');
-  const clearButton = document.querySelector<HTMLButtonElement>('#clear-filters');
-  const recipeItems = Array.from(
-    document.querySelectorAll<HTMLElement>('.recipe-item')
+  
+const searchInput = document.querySelector('#recipe-search');
+const cuisineFilter = document.querySelector('#cuisine-filter');
+const difficultyFilter = document.querySelector('#difficulty-filter');
+const clearButton = document.querySelector('#clear-filters');
+
+const recipeItems = Array.from(
+  document.querySelectorAll('.recipe-item')
+);
+
+const recipeCount = document.querySelector('#recipe-count');
+const noResults = document.querySelector('#no-results');
+
+const pagination = document.querySelector('#recipe-pagination');
+const previousButton = document.querySelector('#previous-page');
+const nextButton = document.querySelector('#next-page');
+const pageInfo = document.querySelector('#page-info');
+
+const recipesPerPage = 9;
+
+let currentPage = 1;
+let filteredRecipes = [];
+
+function renderPage() {
+  const totalPages = Math.ceil(
+    filteredRecipes.length / recipesPerPage
   );
-  const recipeCount = document.querySelector<HTMLElement>('#recipe-count');
-  const noResults = document.querySelector<HTMLElement>('#no-results');
 
-  function filterRecipes() {
-    if (!searchInput || !cuisineFilter || !difficultyFilter) return;
+  const startIndex = (currentPage - 1) * recipesPerPage;
+  const endIndex = startIndex + recipesPerPage;
 
-    const searchTerm = searchInput.value.trim().toLowerCase();
-    const selectedCuisine = cuisineFilter.value;
-    const selectedDifficulty = difficultyFilter.value;
+  recipeItems.forEach((item) => {
+    item.hidden = true;
+  });
 
-    let visibleCount = 0;
+  filteredRecipes.slice(startIndex, endIndex).forEach((item) => {
+    item.hidden = false;
+  });
 
-    recipeItems.forEach((item) => {
-      const searchableContent = item.dataset.search ?? '';
-      const tags = (item.dataset.tags ?? '').split('|');
-      const difficulty = item.dataset.difficulty ?? 'none';
-
-      const matchesSearch = searchableContent.includes(searchTerm);
-
-      const matchesCuisine =
-        selectedCuisine === 'all' || tags.includes(selectedCuisine);
-
-      const matchesDifficulty =
-        selectedDifficulty === 'all' ||
-        difficulty === selectedDifficulty;
-
-      const isVisible =
-        matchesSearch && matchesCuisine && matchesDifficulty;
-
-      item.hidden = !isVisible;
-
-      if (isVisible) visibleCount++;
-    });
-
-    if (recipeCount) {
-      recipeCount.textContent =
-        `${visibleCount} ${visibleCount === 1 ? 'recipe' : 'recipes'} found`;
-    }
-
-    if (noResults) {
-      noResults.hidden = visibleCount !== 0;
-    }
+  if (recipeCount) {
+    recipeCount.textContent =
+      `${filteredRecipes.length} ${
+        filteredRecipes.length === 1 ? 'recipe' : 'recipes'
+      } found`;
   }
 
-  searchInput?.addEventListener('input', filterRecipes);
-  cuisineFilter?.addEventListener('change', filterRecipes);
-  difficultyFilter?.addEventListener('change', filterRecipes);
+  if (noResults) {
+    noResults.hidden = filteredRecipes.length !== 0;
+  }
 
-  clearButton?.addEventListener('click', () => {
-    if (searchInput) searchInput.value = '';
-    if (cuisineFilter) cuisineFilter.value = 'all';
-    if (difficultyFilter) difficultyFilter.value = 'all';
+  if (pagination) {
+    pagination.hidden = totalPages <= 1;
+  }
 
-    filterRecipes();
+  if (pageInfo) {
+    pageInfo.textContent =
+      `Page ${currentPage} of ${totalPages}`;
+  }
+
+  if (previousButton) {
+    previousButton.disabled = currentPage === 1;
+  }
+
+  if (nextButton) {
+    nextButton.disabled = currentPage === totalPages;
+  }
+}
+
+function filterRecipes() {
+  const searchTerm = searchInput.value.trim().toLowerCase();
+  const selectedCuisine = cuisineFilter.value;
+  const selectedDifficulty = difficultyFilter.value;
+
+  filteredRecipes = recipeItems.filter((item) => {
+    const searchableContent = item.dataset.search ?? '';
+    const tags = (item.dataset.tags ?? '').split('|');
+    const difficulty = item.dataset.difficulty ?? 'none';
+
+    const matchesSearch = searchableContent.includes(searchTerm);
+
+    const matchesCuisine =
+      selectedCuisine === 'all' ||
+      tags.includes(selectedCuisine);
+
+    const matchesDifficulty =
+      selectedDifficulty === 'all' ||
+      difficulty === selectedDifficulty;
+
+    return (
+      matchesSearch &&
+      matchesCuisine &&
+      matchesDifficulty
+    );
   });
+
+  // Return to the first page whenever filters change.
+  currentPage = 1;
+
+  renderPage();
+}
+
+searchInput?.addEventListener('input', filterRecipes);
+cuisineFilter?.addEventListener('change', filterRecipes);
+difficultyFilter?.addEventListener('change', filterRecipes);
+
+clearButton?.addEventListener('click', () => {
+  searchInput.value = '';
+  cuisineFilter.value = 'all';
+  difficultyFilter.value = 'all';
+
+  filterRecipes();
+});
+
+previousButton?.addEventListener('click', () => {
+  if (currentPage > 1) {
+    currentPage--;
+    renderPage();
+  }
+});
+
+nextButton?.addEventListener('click', () => {
+  const totalPages = Math.ceil(
+    filteredRecipes.length / recipesPerPage
+  );
+
+  if (currentPage < totalPages) {
+    currentPage++;
+    renderPage();
+  }
+});
+
+// Display the initial recipe page.
+filterRecipes();
+
 </script>
 
 <style>
@@ -367,4 +454,58 @@ const allTags = [
       gap: 18px;
     }
   }
+
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 45px;
+}
+
+.pagination[hidden] {
+  display: none;
+}
+
+.pagination button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid var(--ds-teal);
+  border-radius: var(--ds-radius-sm);
+  background: white;
+  color: var(--ds-teal);
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--ds-teal);
+  color: white;
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#page-info {
+  color: var(--ds-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 575px) {
+  .pagination {
+    gap: 10px;
+  }
+
+  .pagination button {
+    padding: 9px 12px;
+    font-size: 0.85rem;
+  }
+}
+
 </style>
