@@ -37,8 +37,10 @@ export default config({
       columns: ['title', 'difficulty', 'status'],
       schema: {
         title: fields.slug({
-          name: { label: 'Recipe title' },
-          validation: { isRequired: true },
+          name: {
+            label: 'Recipe title',
+            validation: { isRequired: true },
+          },
         }),
 
         ingredients: fields.array(

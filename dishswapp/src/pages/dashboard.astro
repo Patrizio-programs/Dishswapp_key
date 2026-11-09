@@ -48,6 +48,24 @@ if (!user) {
 // ---- Pull + filter the user's recipes -----------------------------------
 const allRecipes = await getCollection('recipes');
 
+const ownerMatches = allRecipes.filter(
+  (r) => r.data.submittedBy === user.id
+);
+
+const testRecipe = allRecipes.find(
+  (r) => r.id.includes('dashboard-test')
+);
+
+console.log('RECIPE DATA:', JSON.stringify(testRecipe?.data, null, 2));
+
+console.log('FIELD CHECK:', {
+  submittedBy: testRecipe?.data.submittedBy,
+  submittedByType: typeof testRecipe?.data.submittedBy,
+  submittedByLength: testRecipe?.data.submittedBy?.length,
+  clerkId: user.id,
+  exactMatch: testRecipe?.data.submittedBy === user.id,
+});
+
 // submittedBy is the Clerk user ID set by /api/recipes on submission.
 const userRecipes = user
   ? allRecipes.filter((r) => r.data.submittedBy === user.id)
