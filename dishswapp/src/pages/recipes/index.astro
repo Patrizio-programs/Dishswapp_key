@@ -8,13 +8,17 @@ import { getCollection } from 'astro:content';
 
 const recipes = await getCollection('recipes');
 
-const sortedRecipes = recipes.sort((a, b) =>
-  a.data.title.localeCompare(b.data.title)
+// Only show recipes that have been approved and set to live.
+const liveRecipes = recipes.filter(
+  (recipe) => recipe.data.status === 'live'
 );
 
+const sortedRecipes = liveRecipes.sort((a, b) =>
+  a.data.title.localeCompare(b.data.title)
+);
 const allTags = [
   ...new Set(
-    recipes.flatMap((recipe) => recipe.data.tags ?? [])
+    liveRecipes.flatMap((recipe) => recipe.data.tags ?? [])
   ),
 ].sort((a, b) => a.localeCompare(b));
 ---
