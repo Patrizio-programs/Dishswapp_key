@@ -29,6 +29,10 @@ const recipes = defineCollection({
       'intermediate',
       'hard',
     ]).optional(),
+    status: z.enum([
+  'live',
+  'pending',
+]).optional(),
 
     description: z.string().optional(),
     author: z.string().optional(),

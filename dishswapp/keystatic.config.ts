@@ -34,7 +34,7 @@ export default config({
       label: 'Recipes',
       slugField: 'title',
       path: 'src/content/recipes/*',
-      columns: ['title', 'difficulty'],
+      columns: ['title', 'difficulty', 'status'],
       schema: {
         title: fields.slug({
           name: { label: 'Recipe title' },
@@ -77,6 +77,14 @@ export default config({
     { label: 'Hard', value: 'hard' },
   ],
   defaultValue: 'none',
+}),
+status: fields.select({
+  label: 'Recipe status',
+  options: [
+    { label: 'Pending', value: 'pending' },
+    { label: 'Live', value: 'live' },
+  ],
+  defaultValue: 'pending',
 }),
 
         description: fields.text({
