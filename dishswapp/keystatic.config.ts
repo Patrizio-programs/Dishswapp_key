@@ -64,13 +64,15 @@ export default config({
         ),
 
         difficulty: fields.select({
-          label: 'Difficulty',
-          options: [
-            { label: 'Easy', value: 'easy' },
-            { label: 'Intermediate', value: 'intermediate' },
-            { label: 'Hard', value: 'hard' },
-          ],
-        }),
+  label: 'Difficulty',
+  options: [
+    { label: 'Not specified', value: 'none' },
+    { label: 'Easy', value: 'easy' },
+    { label: 'Intermediate', value: 'intermediate' },
+    { label: 'Hard', value: 'hard' },
+  ],
+  defaultValue: 'none',
+}),
 
         description: fields.text({
           label: 'Description',
