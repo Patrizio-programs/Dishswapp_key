@@ -1,11 +1,59 @@
-html {
-  max-width: 70ch;
-  padding: 3rem 1rem;
-  margin: auto;
-  line-height: 1.75;
-  font-size: 1.25rem;
-  font-family: sans-serif;
+
+/* =================================
+   DISHSWAPP - BRAND DESIGN TOKENS
+================================= */
+
+:root {
+  /* Brand colours */
+  --ds-cream: #FBF7F1;
+  --ds-teal: #3D717C;
+  --ds-pink: #F9B7A4;
+  --ds-spice: #E07A3B;
+
+  /* Supporting colours */
+  --ds-dark: #2C3435;
+  --ds-muted: #777C79;
+  --ds-border: #E8E0D7;
+  --ds-white: #FFFFFF;
+
+  /* Typography */
+  --ds-heading-font: 'Playfair Display', Georgia, serif;
+  --ds-body-font: 'Inter', sans-serif;
+  --ds-mono-font: 'JetBrains Mono', monospace;
+
+  /* Layout */
+  --ds-container-width: 1200px;
+
+  /* Rounded corners */
+  --ds-radius-sm: 8px;
+  --ds-radius-md: 14px;
+  --ds-radius-lg: 20px;
 }
+
+/* =================================
+   GLOBAL RESET
+================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--ds-cream);
+  color: var(--ds-dark);
+  font-family: var(--ds-body-font);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* =================================
+   TYPOGRAPHY
+================================= */
 
 h1,
 h2,
@@ -13,17 +61,72 @@ h3,
 h4,
 h5,
 h6 {
-  margin: 1rem 0 1rem;
+  font-family: var(--ds-heading-font);
+  color: var(--ds-dark);
+  line-height: 1.2;
 }
 
-p,
-ul,
-ol {
-  margin-bottom: 1rem;
-  color: #1d1d1d;
+p {
+  color: var(--ds-muted);
 }
 
-img {
-  height: auto;
-  max-width: 100%;
+a {
+  color: var(--ds-teal);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--ds-spice);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* =================================
+   SHARED UTILITIES
+================================= */
+
+.ds-container {
+  width: min(100% - 40px, var(--ds-container-width));
+  margin-inline: auto;
+}
+
+.ds-section {
+  padding-block: 64px;
+}
+
+.ds-eyebrow {
+  font-family: var(--ds-mono-font);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ds-teal);
+}
+
+.ds-button-primary {
+  display: inline-block;
+  padding: 12px 24px;
+  background: var(--ds-spice);
+  color: var(--ds-white);
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.ds-button-primary:hover {
+  background: #C96832;
+  color: var(--ds-white);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .ds-section {
+    padding-block: 40px;
+  }
 }
