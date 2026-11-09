@@ -1,0 +1,222 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+import { Show } from "@clerk/astro/components";
+
+const { isAuthenticated } = Astro.locals.auth();
+
+const user = isAuthenticated
+  ? await Astro.locals.currentUser()
+  : null;
+
+// Get the best available display name
+const authorName = user
+  ? [
+      user.firstName,
+      user.lastName,
+    ].filter(Boolean).join(" ") ||
+    user.username ||
+    user.primaryEmailAddress?.emailAddress ||
+    "DishSwapp member"
+  : "";
+---
+
+<Layout title="Submit a Recipe">
+  <Navbar />
+
+  <Show when="signed-in">
+    <div>
+      <main class="submit-page">
+    <div class="submit-container">
+
+      <div class="submit-heading">
+        <span class="eyebrow">SHARE YOUR FOOD</span>
+        <h1>Share your recipe</h1>
+        <p>
+          Have a recipe worth sharing? Add it to DishSwapp and let others
+          discover something delicious.
+        </p>
+      </div>
+
+      <form
+        id="recipe-form"
+        action="/api/recipes"
+        method="POST"
+        enctype="multipart/form-data"
+      >
+
+        <section class="form-section">
+          <h2>Recipe details</h2>
+
+          <div class="form-group">
+            <label for="title">Recipe title *</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              placeholder="e.g. Creamy Garlic Chicken"
+              required
+              maxlength="100"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="description">Short description</label>
+            <textarea
+              id="description"
+              name="description"
+              rows="3"
+              placeholder="Tell us a little about your recipe..."
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="tags">Cuisine / Tags</label>
+              <input
+                type="text"
+                id="tags"
+                name="tags"
+                placeholder="Italian, Caribbean, Asian"
+              />
+              <small>Separate tags with commas.</small>
+            </div>
+
+            <div class="form-group">
+              <label for="difficulty">Difficulty</label>
+              <select id="difficulty" name="difficulty">
+                <option value="none">Not specified</option>
+                <option value="easy">Easy</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>Ingredients and instructions</h2>
+
+          <div class="form-group">
+            <label for="ingredients">Ingredients *</label>
+            <textarea
+              id="ingredients"
+              name="ingredients"
+              rows="7"
+              placeholder={"2 chicken breasts\n2 cloves garlic\n1 cup cream\nSalt and pepper"}
+              required
+            ></textarea>
+            <small>Enter each ingredient on a separate line.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="instructions">Instructions *</label>
+            <textarea
+              id="instructions"
+              name="instructions"
+              rows="8"
+              placeholder={"Season the chicken.\nHeat oil in a pan.\nCook the chicken until done."}
+              required
+            ></textarea>
+            <small>Enter each cooking step on a separate line.</small>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>Additional information</h2>
+
+          <div class="form-row three-columns">
+            <div class="form-group">
+              <label for="prepTime">Prep time (minutes)</label>
+              <input
+                type="number"
+                id="prepTime"
+                name="prepTime"
+                min="1"
+                placeholder="15"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="cookTime">Cook time (minutes)</label>
+              <input
+                type="number"
+                id="cookTime"
+                name="cookTime"
+                min="1"
+                placeholder="30"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="servings">Servings</label>
+              <input
+                type="number"
+                id="servings"
+                name="servings"
+                min="1"
+                placeholder="4"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="notes">Additional notes</label>
+            <textarea
+              id="notes"
+              name="notes"
+              rows="3"
+              placeholder="Any tips, substitutions or helpful information?"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="image">Recipe image</label>
+            <input
+              type="file"
+              id="image"
+              name="image"
+              accept="image/jpeg,image/png,image/webp"
+            />
+            <small>Upload a JPG, PNG or WebP image.</small>
+          </div>
+        </section>
+
+        <section class="form-section author-section">
+          <h2>Submission information</h2>
+
+          <div class="form-group">
+            <label for="author">Submitted by</label>
+            <input
+              type="text"
+              id="author"
+              value={authorName}
+              disabled
+            />
+            <small>Your name comes from your DishSwapp account.</small>
+          </div>
+        </section>
+
+        <div class="submit-actions">
+          <p>
+            Your recipe will be reviewed by the DishSwapp team before
+            appearing publicly.
+          </p>
+          <button type="submit">Submit recipe</button>
+        </div>
+
+      </form>
+    </div>
+  </main>
+    </div>
+
+    <div slot="fallback">
+      <script is:inline>
+        window.location.replace("/login");
+      </script>
+    </div>
+  </Show>
+
+  <Footer />
+</Layout>
