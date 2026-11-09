@@ -1,18 +1,17 @@
-
 import type { APIRoute } from "astro";
-
-const OWNER = "Patrizio-programs";
-const REPO = "Dishswapp_key";
-const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
+import { supabase, RECIPE_IMAGE_BUCKET } from "../../lib/supabase";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_SLUG_ATTEMPTS = 100;
 
-const headers = () => ({
-  Authorization: `Bearer ${import.meta.env.GITHUB_TOKEN}`,
-  Accept: "application/vnd.github+json",
-  "X-GitHub-Api-Version": "2022-11-28",
-  "Content-Type": "application/json",
-});
+const ALLOWED_IMAGE_TYPES: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
+// Errors we want to show to the user as a 400.
+class ValidationError extends Error {}
 
 function response(message: string, status: number) {
   return new Response(message, {
@@ -31,27 +30,9 @@ function slugify(value: string) {
     .slice(0, 80);
 }
 
-function yamlString(value: string) {
-  return JSON.stringify(value);
-}
-
-function yamlArray(values: string[]) {
-  return values.map(value => `  - ${yamlString(value)}`).join("\n");
-}
-
-async function githubRequest(path: string, options?: RequestInit) {
-  return fetch(`${API}${path}`, {
-    ...options,
-    headers: {
-      ...headers(),
-      ...options?.headers,
-    },
-  });
-}
-
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    // Check authentication on the server
+    // ---- Auth (unchanged) -------------------------------------------------
     const { isAuthenticated } = locals.auth();
 
     if (!isAuthenticated) {
@@ -64,12 +45,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return response("Unable to verify your account.", 401);
     }
 
-    const token = import.meta.env.GITHUB_TOKEN;
-
-    if (!token) {
-      return response("GitHub configuration is missing.", 500);
-    }
-
+    // ---- Parse + validate (unchanged rules) -------------------------------
     const form = await request.formData();
 
     const title = String(form.get("title") || "").trim();
@@ -114,12 +90,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
     function optionalNumber(name: string) {
       const value = String(form.get(name) || "").trim();
 
-      if (!value) return undefined;
+      if (!value) return null;
 
       const number = Number(value);
 
       if (!Number.isSafeInteger(number) || number < 1 || number > 10000) {
-        throw new Error(`Invalid ${name} value.`);
+        throw new ValidationError(`Invalid ${name} value.`);
       }
 
       return number;
@@ -129,165 +105,127 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const cookTime = optionalNumber("cookTime");
     const servings = optionalNumber("servings");
 
-    // Get the repository's default branch
-    const repoResponse = await githubRequest("");
-
-    if (!repoResponse.ok) {
-      return response("Could not access the GitHub repository.", 502);
-    }
-
-    const repoData = await repoResponse.json();
-    const branch = repoData.default_branch;
-
-    // Generate a unique recipe filename
     const baseSlug = slugify(title);
 
     if (!baseSlug) {
       return response("Please use a valid recipe title.", 400);
     }
 
-    let slug = baseSlug;
-    let counter = 1;
-
-    while (true) {
-      const check = await githubRequest(
-        `/contents/dishswapp/src/content/recipes/${slug}.yaml?ref=${branch}`
-      );
-
-      if (check.status === 404) break;
-
-      if (!check.ok) {
-        return response("Could not check existing recipes.", 502);
-      }
-
-      counter++;
-      slug = `${baseSlug}-${counter}`;
-
-      if (counter > 100) {
-        return response("Could not create a unique recipe name.", 500);
-      }
-    }
-
-    // Build recipe data
-    const author =
-      [user.firstName, user.lastName].filter(Boolean).join(" ") ||
-      user.username ||
-      user.primaryEmailAddress?.emailAddress ||
-      "DishSwapp member";
-
-    const recipe: Record<string, unknown> = {
-      title,
-      ingredients,
-      instructions,
-      tags,
-      difficulty,
-      status: "pending",
-      author,
-      submittedBy: user.id,
-    };
-
-    if (description) recipe.description = description;
-    if (notes) recipe.notes = notes;
-    if (prepTime !== undefined) recipe.prepTime = prepTime;
-    if (cookTime !== undefined) recipe.cookTime = cookTime;
-    if (servings !== undefined) recipe.servings = servings;
-
-    // Handle optional image upload
+    // Validate the image BEFORE writing anything, so a bad file never leaves
+    // a half-saved recipe behind.
     const image = form.get("image");
+    let upload: { file: File; extension: string } | null = null;
 
     if (image instanceof File && image.size > 0) {
       if (image.size > MAX_IMAGE_SIZE) {
         return response("Image must be 5 MB or smaller.", 400);
       }
 
-      const allowedTypes: Record<string, string> = {
-        "image/jpeg": "jpg",
-        "image/png": "png",
-        "image/webp": "webp",
-      };
-
-      const extension = allowedTypes[image.type];
+      const extension = ALLOWED_IMAGE_TYPES[image.type];
 
       if (!extension) {
         return response("Only JPG, PNG and WebP images are allowed.", 400);
       }
 
-      const bytes = Buffer.from(await image.arrayBuffer());
+      upload = { file: image, extension };
+    }
 
-      const imagePath =
-        `dishswapp/public/images/recipes/${slug}.${extension}`;
+    // ---- Author (unchanged) -----------------------------------------------
+    const author =
+      [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+      user.username ||
+      user.primaryEmailAddress?.emailAddress ||
+      "DishSwapp member";
 
-      const imageResponse = await githubRequest(
-        `/contents/${imagePath}`,
-        {
-          method: "PUT",
-          body: JSON.stringify({
-            message: `Add recipe image: ${title}`,
-            branch,
-            content: bytes.toString("base64"),
-          }),
-        }
-      );
+    // ---- Image -> Supabase Storage ----------------------------------------
+    // The id is generated here so the image path never depends on the slug
+    // (renaming a recipe later won't orphan its image) and the row can be
+    // inserted once, already carrying image_url.
+    const id = crypto.randomUUID();
+    let imagePath: string | null = null;
+    let imageUrl: string | null = null;
 
-      if (!imageResponse.ok) {
+    const removeImage = async () => {
+      if (!imagePath) return;
+      const { error } = await supabase.storage
+        .from(RECIPE_IMAGE_BUCKET)
+        .remove([imagePath]);
+      if (error) console.error("Could not clean up image:", error);
+    };
+
+    if (upload) {
+      imagePath = `${id}.${upload.extension}`;
+      const bytes = Buffer.from(await upload.file.arrayBuffer());
+
+      const { error: uploadError } = await supabase.storage
+        .from(RECIPE_IMAGE_BUCKET)
+        .upload(imagePath, bytes, {
+          contentType: upload.file.type,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error("Storage upload failed:", uploadError);
         return response("Could not upload the recipe image.", 502);
       }
 
-      recipe.image = `/images/recipes/${slug}.${extension}`;
+      imageUrl = supabase.storage
+        .from(RECIPE_IMAGE_BUCKET)
+        .getPublicUrl(imagePath).data.publicUrl;
     }
 
-    // Convert recipe data into YAML
-    const yaml = [
-      `title: ${yamlString(title)}`,
-      "ingredients:",
-      yamlArray(ingredients),
-      "instructions:",
-      yamlArray(instructions),
-      "tags:",
-      yamlArray(tags),
-      `difficulty: ${yamlString(difficulty)}`,
-      'status: "pending"',
-      `author: ${yamlString(author)}`,
-      `submittedBy: ${yamlString(user.id)}`,
-    ];
+    // ---- Insert row; the UNIQUE(slug) constraint replaces the GitHub loop ---
+    const row = {
+      id,
+      title,
+      description: description || null,
+      ingredients,
+      instructions,
+      tags,
+      difficulty,
+      status: "pending", // always pending on submit
+      author,
+      submitted_by: user.id,
+      image_url: imageUrl,
+      prep_time: prepTime,
+      cook_time: cookTime,
+      servings,
+      notes: notes || null,
+    };
 
-    if (description) yaml.push(`description: ${yamlString(description)}`);
-    if (recipe.image) yaml.push(`image: ${yamlString(String(recipe.image))}`);
-    if (prepTime !== undefined) yaml.push(`prepTime: ${prepTime}`);
-    if (cookTime !== undefined) yaml.push(`cookTime: ${cookTime}`);
-    if (servings !== undefined) yaml.push(`servings: ${servings}`);
-    if (notes) yaml.push(`notes: ${yamlString(notes)}`);
+    let saved = false;
 
-    const recipeContent = Buffer.from(yaml.join("\n") + "\n").toString("base64");
+    for (let attempt = 1; attempt <= MAX_SLUG_ATTEMPTS; attempt++) {
+      const slug = attempt === 1 ? baseSlug : `${baseSlug}-${attempt}`;
 
-    // Save recipe to GitHub
-    const saveResponse = await githubRequest(
-      `/contents/dishswapp/src/content/recipes/${slug}.yaml`,
-      {
-        method: "PUT",
-        body: JSON.stringify({
-          message: `Submit recipe: ${title}`,
-          branch,
-          content: recipeContent,
-        }),
+      const { error } = await supabase.from("recipes").insert({ ...row, slug });
+
+      if (!error) {
+        saved = true;
+        break;
       }
-    );
 
-    if (!saveResponse.ok) {
-      return response("Could not save the recipe to GitHub.", 502);
+      // 23505 = unique_violation (slug already taken) -> try the next suffix.
+      if (error.code === "23505") continue;
+
+      console.error("Supabase insert failed:", error);
+      await removeImage();
+      return response("Could not save the recipe. Please try again.", 502);
     }
 
-    return Response.redirect(
-      new URL("/recipe-submitted", request.url),
-      303
-    );
+    if (!saved) {
+      await removeImage();
+      return response("Could not create a unique recipe name.", 500);
+    }
 
+    return Response.redirect(new URL("/recipe-submitted", request.url), 303);
   } catch (error) {
     console.error("Recipe submission error:", error);
 
-    return response(
-      error instanceof Error ? error.message : "Something went wrong.",
-      400
-    );
+    if (error instanceof ValidationError) {
+      return response(error.message, 400);
+    }
+
+    return response("Something went wrong.", 500);
   }
 };

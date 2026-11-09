@@ -4,33 +4,21 @@
 //
 // What this page does
 // --------------------
-//   • Pulls every recipe from the `recipes` content collection.
-//   • Filters server-side by `submittedBy === user.id` (Clerk user ID —
-//     this is the same value the /api/recipes endpoint writes when a recipe
-//     is submitted through /submit-recipe).
-//   • Splits the user's recipes into:
+//   • Reads the signed-in user's recipes from Supabase (table: recipes),
+//     filtered server-side by submitted_by = Clerk user ID.
+//   • Splits them into:
 //       - LIVE   → rendered as cards (reusing the shared RecipeCard.astro)
 //       - PENDING → shown as a count only.
-//   • Two CTAs:
-//       - "Add a new recipe"  → /submit-recipe   (spice, primary CTA)
-//       - "Browse all recipes" → /recipes        (outline teal, secondary)
+//   • Two CTAs: "Add a new recipe" and "Browse all recipes".
 //
-// Wiring
-// ------
-//   The Navbar already has a `/dashboard` link, so dropping this file into
-//   `src/pages/dashboard.astro` is all that's required. No other files
-//   need to change.
-//
-// Auth pattern matches src/pages/submit-recipe.astro:
-//   • Server-side: Astro.locals.auth() + Astro.locals.currentUser()
-//   • Client-side: Clerk's <Show when="signed-in"> wraps the content;
-//     the fallback slot redirects signed-out visitors to /login.
+// Rows are mapped into the same { id, data } shape the old content collection
+// produced, so RecipeCard.astro and the template below stay unchanged.
 
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import RecipeCard from '../components/RecipeCard.astro';
-import { getCollection } from 'astro:content';
+import { supabase, type Recipe } from '../lib/supabase';
 
 // ---- Server-side auth (Clerk Astro) -------------------------------------
 const { isAuthenticated } = Astro.locals.auth();
@@ -45,31 +33,39 @@ if (!user) {
   return Astro.redirect('/login');
 }
 
-// ---- Pull + filter the user's recipes -----------------------------------
-const allRecipes = await getCollection('recipes');
+// ---- Pull the user's recipes from Supabase ------------------------------
+const { data: rows, error } = await supabase
+  .from('recipes')
+  .select('*')
+  .eq('submitted_by', user.id)
+  .order('created_at', { ascending: false });
 
-const ownerMatches = allRecipes.filter(
-  (r) => r.data.submittedBy === user.id
-);
+if (error) {
+  console.error('Dashboard query failed:', error);
+}
 
-const testRecipe = allRecipes.find(
-  (r) => r.id.includes('dashboard-test')
-);
-
-console.log('RECIPE DATA:', JSON.stringify(testRecipe?.data, null, 2));
-
-console.log('FIELD CHECK:', {
-  submittedBy: testRecipe?.data.submittedBy,
-  submittedByType: typeof testRecipe?.data.submittedBy,
-  submittedByLength: testRecipe?.data.submittedBy?.length,
-  clerkId: user.id,
-  exactMatch: testRecipe?.data.submittedBy === user.id,
+// Map a Supabase row to the shape the old content-collection entries had.
+const toEntry = (r: Recipe) => ({
+  id: r.slug,
+  data: {
+    title: r.title,
+    description: r.description ?? undefined,
+    ingredients: r.ingredients,
+    instructions: r.instructions,
+    tags: r.tags,
+    difficulty: r.difficulty,
+    status: r.status,
+    author: r.author ?? undefined,
+    submittedBy: r.submitted_by,
+    image: r.image_url ?? undefined,
+    prepTime: r.prep_time ?? undefined,
+    cookTime: r.cook_time ?? undefined,
+    servings: r.servings ?? undefined,
+    notes: r.notes ?? undefined,
+  },
 });
 
-// submittedBy is the Clerk user ID set by /api/recipes on submission.
-const userRecipes = user
-  ? allRecipes.filter((r) => r.data.submittedBy === user.id)
-  : [];
+const userRecipes = ((rows ?? []) as Recipe[]).map(toEntry);
 
 // LIVE recipes — shown as cards, sorted alphabetically by title
 // (matches the sort used on /recipes).
@@ -77,18 +73,17 @@ const liveRecipes = userRecipes
   .filter((r) => r.data.status === 'live')
   .sort((a, b) => a.data.title.localeCompare(b.data.title));
 
-// PENDING recipes — only the count matters, per the brief.
+// PENDING recipes — only the count matters.
 const pendingCount = userRecipes.filter(
   (r) => r.data.status === 'pending'
 ).length;
 
 // ---- Display name (same fallback chain as submit-recipe.astro) ----------
-const displayName = user
-  ? [user.firstName, user.lastName].filter(Boolean).join(' ') ||
-    user.username ||
-    user.primaryEmailAddress?.emailAddress ||
-    'DishSwapp cook'
-  : '';
+const displayName =
+  [user.firstName, user.lastName].filter(Boolean).join(' ') ||
+  user.username ||
+  user.primaryEmailAddress?.emailAddress ||
+  'DishSwapp cook';
 ---
 
 <Layout title="Dashboard | DishSwapp">
