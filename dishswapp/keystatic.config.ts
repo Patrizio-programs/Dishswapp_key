@@ -1,3 +1,4 @@
+
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
@@ -20,6 +21,85 @@ export default config({
               publicPath: '../../assets/images/posts/',
             },
           },
+        }),
+      },
+    }),
+
+    recipes: collection({
+      label: 'Recipes',
+      slugField: 'title',
+      path: 'src/content/recipes/*',
+      columns: ['title', 'difficulty'],
+      schema: {
+        title: fields.slug({
+          name: { label: 'Recipe title' },
+          validation: { isRequired: true },
+        }),
+
+        ingredients: fields.array(
+          fields.text({ label: 'Ingredient' }),
+          {
+            label: 'Ingredients',
+            itemLabel: props => props.value || 'New ingredient',
+          }
+        ),
+
+        instructions: fields.array(
+          fields.text({
+            label: 'Step',
+            multiline: true,
+          }),
+          {
+            label: 'Instructions',
+            itemLabel: props => props.value || 'New step',
+          }
+        ),
+
+        tags: fields.array(
+          fields.text({ label: 'Tag' }),
+          {
+            label: 'Tags',
+            itemLabel: props => props.value || 'New tag',
+          }
+        ),
+
+        difficulty: fields.select({
+          label: 'Difficulty',
+          options: [
+            { label: 'Easy', value: 'easy' },
+            { label: 'Intermediate', value: 'intermediate' },
+            { label: 'Hard', value: 'hard' },
+          ],
+        }),
+
+        description: fields.text({
+          label: 'Description',
+          multiline: true,
+        }),
+
+        author: fields.text({ label: 'Author' }),
+
+        image: fields.image({
+          label: 'Recipe image',
+          directory: 'public/images/recipes',
+          publicPath: '/images/recipes/',
+        }),
+
+        prepTime: fields.integer({
+          label: 'Preparation time (minutes)',
+        }),
+
+        cookTime: fields.integer({
+          label: 'Cooking time (minutes)',
+        }),
+
+        servings: fields.integer({
+          label: 'Servings',
+        }),
+
+        notes: fields.text({
+          label: 'Additional notes',
+          multiline: true,
         }),
       },
     }),
