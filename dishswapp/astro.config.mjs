@@ -5,9 +5,11 @@ import node from '@astrojs/node';
 import keystatic from '@keystatic/astro';
 import clerk from '@clerk/astro'
 
+import vercel from '@astrojs/vercel';
+
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
-  adapter: node({ mode: 'standalone' }),
+  adapter: vercel(),
   integrations: [react(), clerk(), markdoc(), keystatic()],
 });

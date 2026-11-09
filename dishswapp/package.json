@@ -17,6 +17,7 @@
     "@astrojs/markdoc": "^2.0.1",
     "@astrojs/node": "^11.1.11",
     "@astrojs/react": "^6.0.0",
+    "@astrojs/vercel": "^11.0.20",
     "@clerk/astro": "^4.1.22",
     "@keystatic/astro": "^6.0.0",
     "@keystatic/core": "^0.6.7",
