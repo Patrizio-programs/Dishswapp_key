@@ -183,6 +183,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       difficulty,
       status: "pending",
       author,
+      submittedBy: user.id,
     };
 
     if (description) recipe.description = description;
@@ -247,6 +248,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       `difficulty: ${yamlString(difficulty)}`,
       'status: "pending"',
       `author: ${yamlString(author)}`,
+      `submittedBy: ${yamlString(user.id)}`,
     ];
 
     if (description) yaml.push(`description: ${yamlString(description)}`);
