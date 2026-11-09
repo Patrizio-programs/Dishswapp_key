@@ -1,0 +1,430 @@
+---
+// src/pages/dashboard.astro
+// Personal dashboard for signed-in DishSwapp contributors.
+//
+// What this page does
+// --------------------
+//   • Pulls every recipe from the `recipes` content collection.
+//   • Filters server-side by `submittedBy === user.id` (Clerk user ID —
+//     this is the same value the /api/recipes endpoint writes when a recipe
+//     is submitted through /submit-recipe).
+//   • Splits the user's recipes into:
+//       - LIVE   → rendered as cards (reusing the shared RecipeCard.astro)
+//       - PENDING → shown as a count only.
+//   • Two CTAs:
+//       - "Add a new recipe"  → /submit-recipe   (spice, primary CTA)
+//       - "Browse all recipes" → /recipes        (outline teal, secondary)
+//
+// Wiring
+// ------
+//   The Navbar already has a `/dashboard` link, so dropping this file into
+//   `src/pages/dashboard.astro` is all that's required. No other files
+//   need to change.
+//
+// Auth pattern matches src/pages/submit-recipe.astro:
+//   • Server-side: Astro.locals.auth() + Astro.locals.currentUser()
+//   • Client-side: Clerk's <Show when="signed-in"> wraps the content;
+//     the fallback slot redirects signed-out visitors to /login.
+
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import RecipeCard from '../components/RecipeCard.astro';
+import { Show } from '@clerk/astro/components';
+import { getCollection } from 'astro:content';
+
+// ---- Server-side auth (Clerk Astro) -------------------------------------
+const { isAuthenticated } = Astro.locals.auth();
+const user = isAuthenticated ? await Astro.locals.currentUser() : null;
+
+// ---- Pull + filter the user's recipes -----------------------------------
+const allRecipes = await getCollection('recipes');
+
+// submittedBy is the Clerk user ID set by /api/recipes on submission.
+const userRecipes = user
+  ? allRecipes.filter((r) => r.data.submittedBy === user.id)
+  : [];
+
+// LIVE recipes — shown as cards, sorted alphabetically by title
+// (matches the sort used on /recipes).
+const liveRecipes = userRecipes
+  .filter((r) => r.data.status === 'live')
+  .sort((a, b) => a.data.title.localeCompare(b.data.title));
+
+// PENDING recipes — only the count matters, per the brief.
+const pendingCount = userRecipes.filter(
+  (r) => r.data.status === 'pending'
+).length;
+
+// ---- Display name (same fallback chain as submit-recipe.astro) ----------
+const displayName = user
+  ? [user.firstName, user.lastName].filter(Boolean).join(' ') ||
+    user.username ||
+    user.primaryEmailAddress?.emailAddress ||
+    'DishSwapp cook'
+  : '';
+---
+
+<Layout title="Dashboard | DishSwapp">
+  <Navbar />
+
+  <Show when="signed-in">
+    <main class="dashboard">
+      <!-- ===================== Header band ===================== -->
+      <section class="dash-header">
+        <div class="ds-container">
+          <p class="ds-eyebrow">YOUR DISHSWAPP KITCHEN</p>
+
+          <h1 class="dash-title">
+            Welcome back<span class="dash-title-accent">, {displayName}</span>
+          </h1>
+
+          <p class="dash-subtitle">
+            Everything you've shared with the community, in one place.
+            Live recipes are cookable now; pending ones are waiting on review.
+          </p>
+
+          <!-- Two CTAs (§10 button kit). Spice = the one "cook this" moment. -->
+          <div class="dash-actions">
+            <a class="dash-btn dash-btn--spice" href="/submit-recipe">
+              <i class="bi bi-plus-lg"></i>
+              Add a new recipe
+            </a>
+            <a class="dash-btn dash-btn--outline" href="/recipes">
+              <i class="bi bi-search"></i>
+              Browse all recipes
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== Stats band ===================== -->
+      <section class="ds-container dash-stats">
+        <div class="dash-stat">
+          <span class="dash-stat__label">Live recipes</span>
+          <span class="dash-stat__value">{liveRecipes.length}</span>
+          <span class="dash-stat__caption">
+            {liveRecipes.length === 1
+              ? 'recipe is cookable on the site'
+              : 'recipes are cookable on the site'}
+          </span>
+        </div>
+
+        <div class="dash-stat dash-stat--pending">
+          <span class="dash-stat__badge">In review</span>
+          <span class="dash-stat__label">Pending review</span>
+          <span class="dash-stat__value">{pendingCount}</span>
+          <span class="dash-stat__caption">
+            {pendingCount === 1
+              ? 'recipe awaiting approval'
+              : 'recipes awaiting approval'}
+          </span>
+        </div>
+      </section>
+
+      <!-- ===================== Live recipe grid ===================== -->
+      <section class="ds-container dash-grid-section">
+        <div class="dash-grid-heading">
+          <h2>Your live recipes</h2>
+          <p>
+            {liveRecipes.length === 0
+              ? 'No live recipes yet'
+              : liveRecipes.length === 1
+                ? '1 recipe live on the site'
+                : `${liveRecipes.length} recipes live on the site`}
+          </p>
+        </div>
+
+        {liveRecipes.length > 0 ? (
+          <div class="dash-grid">
+            {liveRecipes.map((recipe) => (
+              <RecipeCard
+                recipe={recipe}
+                href={`/recipes/${recipe.id}/`}
+              />
+            ))}
+          </div>
+        ) : (
+          <div class="dash-empty">
+            <div class="dash-empty__icon" aria-hidden="true">
+              <i class="bi bi-journal-bookmark"></i>
+            </div>
+            <h3>No recipes yet — your kitchen is quiet.</h3>
+            <p>
+              Share your first recipe and it'll show up here once it's
+              approved. Tap <strong>“Add a new recipe”</strong> above to
+              get started.
+            </p>
+          </div>
+        )}
+      </section>
+    </main>
+
+    <!-- Signed-out fallback: bounce to the Clerk sign-in page. -->
+    <div slot="fallback">
+      <script is:inline>
+        window.location.replace('/login');
+      </script>
+    </div>
+  </Show>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* ============================================================
+     Dashboard — DishSwapp brand book (v2.0)
+     Uses tokens from src/styles.css:
+       --ds-cream, --ds-teal, --ds-pink, --ds-spice, --ds-dark,
+       --ds-muted, --ds-border,
+       --ds-heading-font (Playfair), --ds-body-font (Inter),
+       --ds-mono-font (JetBrains Mono),
+       --ds-radius-sm/md/lg.
+     60/30/10 ratio: cream canvas, teal structure, <10% spice + pink.
+  ============================================================ */
+
+  .dashboard {
+    min-height: 60vh;
+  }
+
+  /* ---------- Header band ---------- */
+  .dash-header {
+    background: var(--ds-cream);
+    padding: 70px 0 50px;
+    border-bottom: 1px solid var(--ds-border);
+  }
+
+  .dash-title {
+    font-family: var(--ds-heading-font);
+    font-size: clamp(2.2rem, 4.5vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ds-dark);
+    margin: 12px 0 18px;
+  }
+
+  /* Pink italic accent mirrors the wordmark's "Swapp" and the hero's
+     "cook." (§04 / §16). Spice is reserved for the one CTA per page. */
+  .dash-title-accent {
+    color: var(--ds-pink);
+    font-style: italic;
+  }
+
+  .dash-subtitle {
+    color: var(--ds-muted);
+    line-height: 1.7;
+    max-width: 620px;
+    margin: 0 0 28px;
+  }
+
+  /* ---------- CTA buttons (§10 button kit) ---------- */
+  .dash-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .dash-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border-radius: 999px;
+    font-family: var(--ds-body-font);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease,
+      transform 0.15s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+  }
+
+  /* Spice = the one primary CTA on the page (§10). */
+  .dash-btn--spice {
+    background: var(--ds-spice);
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 12px rgba(44, 42, 40, 0.12);
+  }
+
+  .dash-btn--spice:hover {
+    background: #c96a32;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(44, 42, 40, 0.18);
+  }
+
+  /* Secondary = outline teal (§10). */
+  .dash-btn--outline {
+    background: transparent;
+    color: var(--ds-teal);
+    border: 1.5px solid var(--ds-teal);
+  }
+
+  .dash-btn--outline:hover {
+    background: var(--ds-teal);
+    color: #fff;
+  }
+
+  /* ---------- Stats band ---------- */
+  .dash-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    padding-top: 45px;
+    padding-bottom: 15px;
+  }
+
+  .dash-stat {
+    background: #fff;
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-md);
+    padding: 28px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* Pending card uses oat as the card-highlight fill (§05 oat role) and a
+     small pink badge as the only pink element — keeps the 60/30/10 ratio. */
+  .dash-stat--pending {
+    background: var(--ds-oat, #EFE5D4);
+    border-color: transparent;
+  }
+
+  .dash-stat__badge {
+    align-self: flex-start;
+    background: var(--ds-pink);
+    color: #2C2A28;
+    font-family: var(--ds-mono-font);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 4px;
+  }
+
+  .dash-stat__label {
+    font-family: var(--ds-mono-font);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ds-teal);
+  }
+
+  .dash-stat--pending .dash-stat__label {
+    color: var(--ds-teal);
+  }
+
+  .dash-stat__value {
+    font-family: var(--ds-heading-font);
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ds-dark);
+    font-feature-settings: 'tnum' 1;
+  }
+
+  .dash-stat__caption {
+    font-size: 0.9rem;
+    color: var(--ds-muted);
+  }
+
+  .dash-stat--pending .dash-stat__caption {
+    color: var(--ds-muted);
+    opacity: 1;
+  }
+
+  /* ---------- Live recipe grid ---------- */
+  .dash-grid-section {
+    padding-top: 35px;
+    padding-bottom: 80px;
+  }
+
+  .dash-grid-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .dash-grid-heading h2 {
+    font-family: var(--ds-heading-font);
+    font-size: 1.9rem;
+    color: var(--ds-dark);
+    margin: 0;
+  }
+
+  .dash-grid-heading p {
+    color: var(--ds-muted);
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 25px;
+  }
+
+  /* ---------- Empty state ---------- */
+  .dash-empty {
+    text-align: center;
+    background: var(--ds-cream);
+    border: 1px dashed var(--ds-border);
+    border-radius: var(--ds-radius-lg);
+    padding: 60px 30px;
+  }
+
+  .dash-empty__icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 18px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--ds-pink);
+    color: var(--ds-dark);
+    font-size: 1.6rem;
+  }
+
+  .dash-empty h3 {
+    font-family: var(--ds-heading-font);
+    font-size: 1.5rem;
+    color: var(--ds-dark);
+    margin: 0 0 8px;
+  }
+
+  .dash-empty p {
+    color: var(--ds-muted);
+    margin: 0 auto;
+    max-width: 460px;
+    line-height: 1.7;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 991px) {
+    .dash-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 575px) {
+    .dash-header {
+      padding: 50px 0 40px;
+    }
+
+    .dash-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .dash-grid {
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+  }
+</style>
