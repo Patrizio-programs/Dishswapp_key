@@ -1,0 +1,321 @@
+---
+// src/pages/donate.astro
+// Donate page — same family as /about (dark-teal hero + pink circle, cream body).
+//   • No spice button here: the only call to action is the Ko-fi widget itself.
+//   • "Completely free" escalates in size (free, free!, FREE!!!), mirroring the
+//     !, !!, !!! in the copy.
+//   • The Ko-fi card sits beside the reminders on desktop and stays sticky
+//     while you read; on mobile it follows them.
+
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="Donate | DishSwapp">
+  <Navbar />
+
+  <main class="donate">
+    <!-- ============ Hero ============ -->
+    <section class="donate-hero">
+      <div class="donate-hero__circle" aria-hidden="true"></div>
+
+      <div class="ds-container donate-hero__inner">
+        <p class="donate-hero__eyebrow">Support DishSwapp</p>
+        <h1>Help us do more awesome things!</h1>
+      </div>
+    </section>
+
+    <!-- ============ Intro ============ -->
+    <section class="ds-container donate-intro">
+      <p class="donate-statement">
+        Here at DishSwapp we are always looking to give you more for less.
+      </p>
+
+      <p class="donate-lead">
+        We are independent and would appreciate any donations. These donations
+        go directly into developing DishSwapp with more awesome features. If you
+        think that’s great go ahead and donate below! Thanks in advance!
+      </p>
+
+      <p class="donate-ps">
+        PS: Even if you don’t donate we still appreciate you using DishSwapp, so
+        thank you!
+      </p>
+    </section>
+
+    <!-- ============ Reminders + Ko-fi ============ -->
+    <section class="ds-container donate-main">
+      <div class="donate-remember">
+        <h2>Remember…</h2>
+
+        <div class="donate-free">
+          <p class="donate-free__line donate-free__line--1">DishSwapp is completely free!</p>
+          <p class="donate-free__line donate-free__line--2">DishSwapp is completely free!!</p>
+          <p class="donate-free__line donate-free__line--3">DishSwapp is completely free!!!</p>
+        </div>
+
+        <ul class="donate-reasons">
+          <li>
+            <span class="donate-reasons__icon" aria-hidden="true">
+              <i class="bi bi-gift"></i>
+            </span>
+            <span>We want to continue giving you more amazing things for free.</span>
+          </li>
+          <li>
+            <span class="donate-reasons__icon" aria-hidden="true">
+              <i class="bi bi-cup-hot"></i>
+            </span>
+            <span>
+              We would appreciate it if you could donate as low as
+              <strong> $5</strong>, whether one-time or monthly.
+            </span>
+          </li>
+          <li>
+            <span class="donate-reasons__icon" aria-hidden="true">
+              <i class="bi bi-lightbulb"></i>
+            </span>
+            <span>
+              Your donation will help us add more awesome features that will
+              benefit <strong>YOU</strong>, the user.
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      <aside class="donate-kofi" aria-label="Donate on Ko-fi">
+        <iframe
+          id="kofiframe"
+          src="https://ko-fi.com/dishswapp/?hidefeed=true&widget=true&embed=true&preview=true"
+          style="border:none;width:100%;padding:4px;background:#f9f9f9;"
+          height="712"
+          title="dishswapp"
+          loading="lazy"></iframe>
+      </aside>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .donate {
+    --donate-teal-dark: #2a535c;
+    --donate-teal-tint: #e5edef;
+    --donate-oat: #efe5d4;
+    --donate-ink: #2c2a28;
+  }
+
+  /* ---------- Hero ---------- */
+  .donate-hero {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--donate-teal-dark);
+    padding-block: 88px 96px;
+  }
+
+  .donate-hero__circle {
+    position: absolute;
+    top: 50%;
+    right: -90px;
+    width: clamp(220px, 34vw, 440px);
+    aspect-ratio: 1;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    background-color: var(--ds-pink);
+  }
+
+  .donate-hero__inner {
+    position: relative; /* keeps the text above the circle */
+  }
+
+  .donate-hero__eyebrow {
+    margin: 0 0 18px;
+    font-family: var(--ds-mono-font);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--donate-teal-tint);
+  }
+
+  .donate-hero h1 {
+    margin: 0;
+    max-width: 16ch;
+    font-family: var(--ds-heading-font);
+    font-size: clamp(2.75rem, 7vw, 5rem);
+    font-style: italic;
+    font-weight: 600;
+    line-height: 1.04;
+    color: #fff;
+  }
+
+  /* ---------- Intro ---------- */
+  .donate-intro {
+    padding-top: 80px;
+    padding-bottom: 56px;
+  }
+
+  .donate-statement {
+    max-width: 22em;
+    margin: 0;
+    font-family: var(--ds-heading-font);
+    font-size: clamp(1.75rem, 3.6vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--donate-ink);
+  }
+
+  .donate-lead {
+    max-width: 38rem;
+    margin: 28px 0 0;
+    font-size: 1.1875rem;
+    line-height: 1.65;
+    color: var(--ds-dark);
+  }
+
+  .donate-ps {
+    max-width: 38rem;
+    margin: 32px 0 0;
+    padding: 16px 20px;
+    background-color: var(--donate-oat);
+    border-left: 3px solid var(--ds-pink);
+    border-radius: 0 var(--ds-radius-sm) var(--ds-radius-sm) 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--ds-dark);
+  }
+
+  /* ---------- Reminders + Ko-fi ---------- */
+  .donate-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 440px;
+    gap: 64px;
+    align-items: start;
+    padding-top: 56px;
+    padding-bottom: 96px;
+    border-top: 1px solid var(--ds-border);
+  }
+
+  .donate-remember h2 {
+    margin: 0 0 20px;
+    font-family: var(--ds-heading-font);
+    font-size: clamp(1.5rem, 2.4vw, 1.75rem);
+    font-weight: 700;
+    color: var(--donate-ink);
+  }
+
+  /* "Completely free" gets louder each time, like the !, !!, !!! in the copy. */
+  .donate-free {
+    margin-bottom: 40px;
+  }
+
+  .donate-free__line {
+    margin: 0;
+    font-family: var(--ds-heading-font);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--donate-ink);
+  }
+
+  .donate-free__line--1 {
+    font-size: clamp(1.15rem, 2.2vw, 1.35rem);
+    margin-bottom: 6px;
+  }
+
+  .donate-free__line--2 {
+    font-size: clamp(1.4rem, 2.8vw, 1.8rem);
+    margin-bottom: 8px;
+  }
+
+  .donate-free__line--3 {
+    font-size: clamp(1.65rem, 3.4vw, 2.4rem);
+    font-style: italic;
+    color: var(--ds-teal);
+  }
+
+  .donate-reasons {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .donate-reasons li {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding-block: 20px;
+    border-top: 1px solid var(--ds-border);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: var(--ds-dark);
+  }
+
+  .donate-reasons li:last-child {
+    border-bottom: 1px solid var(--ds-border);
+  }
+
+  .donate-reasons__icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--donate-oat);
+    font-size: 1.1rem;
+    color: var(--donate-ink);
+  }
+
+  /* ---------- Ko-fi card ---------- */
+  .donate-kofi {
+    position: sticky;
+    top: 24px;
+    padding: 12px;
+    background-color: var(--ds-white);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-lg);
+    overflow: hidden;
+  }
+
+  .donate-kofi iframe {
+    display: block;
+    border-radius: var(--ds-radius-md);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 991.98px) {
+    .donate-main {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 40px;
+    }
+
+    .donate-kofi {
+      position: static;
+      width: min(100%, 520px);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .donate-hero {
+      padding-block: 120px 56px; /* leaves room for the circle above the text */
+    }
+
+    .donate-hero__circle {
+      top: -70px;
+      right: -70px;
+      width: 220px;
+      transform: none;
+    }
+
+    .donate-intro {
+      padding-top: 56px;
+      padding-bottom: 40px;
+    }
+
+    .donate-main {
+      padding-top: 40px;
+      padding-bottom: 64px;
+    }
+  }
+</style>

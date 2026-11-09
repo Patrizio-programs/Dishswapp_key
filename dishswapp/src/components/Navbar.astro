@@ -1,13 +1,18 @@
 ---
 // Astro frontmatter
 import { Show, UserButton} from "@clerk/astro/components"
+
+// Mark the link for the current page (underline stays on, read out as "current page").
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const current = (href: string) =>
+  path === href || path.startsWith(href + '/') ? 'page' : undefined;
 ---
 
 <nav class="navbar navbar-expand-lg custom-navbar py-3">
   <div class="container-fluid px-4">
     <!-- Brand Logo / Name -->
     <a class="navbar-brand d-flex align-items-center me-auto" href="/">
-    <img src="./img/dishswapp-wordmark-on-dark.png" width="200px"/>
+    <img src="/img/dishswapp-wordmark-on-dark.png" width="200px"/>
     </a>
 
     <!-- Mobile Toggler (Hidden on desktop due to navbar-expand-lg) -->
@@ -28,18 +33,18 @@ import { Show, UserButton} from "@clerk/astro/components"
       <!-- Centered Navigation Links -->
       <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-3 text-center text-lg-start">
         <li class="nav-item">
-          <a class="nav-link text-white-50 text-white-hover px-3" href="/dashboard">Dashboard</a>
+          <a class="nav-link text-white-50 text-white-hover px-3" href="/dashboard" aria-current={current("/dashboard")}>Dashboard</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-white-50 text-white-hover px-3" href="/about">About</a>
+          <a class="nav-link text-white-50 text-white-hover px-3" href="/about" aria-current={current("/about")}>About</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-white-50 text-white-hover px-3" href="#donate">Donate</a>
+          <a class="nav-link text-white-50 text-white-hover px-3" href="/donate">Donate</a>
         </li>
       </ul>
 
       <!-- Right Action Button -->
-      <div class="d-flex justify-content-center pt-2 pt-lg-0">
+      <div class="d-flex justify-content-center pt-2 pt-lg-0 ms-lg-auto">
          <Show when="signed-out"> 
         <a href="/login" class="btn btn-auth rounded-pill px-4 py-2 fw-semibold">
           Login / Sign up
@@ -56,9 +61,10 @@ import { Show, UserButton} from "@clerk/astro/components"
 <style>
   /* Custom color variables based on the image */
   :root {
-    --nav-bg: #3c737c;
-    --btn-bg: #ffb59f;
-    --btn-text: #2c2c2c;
+    --nav-bg: #3d717c;
+    --btn-bg: #f9b7a4;
+    --btn-text: #2c2a28;
+    --btn-bg-hover: #fce6dd; /* brand "pink-soft" */
   }
 
   /* Navbar background */
@@ -83,31 +89,120 @@ import { Show, UserButton} from "@clerk/astro/components"
     color: var(--btn-bg);
   }
 
-  /* Navigation Link styles */
+  /* Navigation links
+     Hover: text goes to full white and a pink underline grows out from the
+     centre. The current page keeps the underline, so hover and "you are here"
+     speak the same language. */
   .nav-link {
+    position: relative;
     font-weight: 400;
     font-size: 1rem;
     color: rgba(255, 255, 255, 0.85) !important;
     transition: color 0.2s ease;
   }
 
-  .nav-link:hover {
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 1rem;   /* matches the px-3 padding, so the line is exactly as wide as the text */
+    right: 1rem;
+    bottom: 0.2rem;
+    height: 2px;
+    border-radius: 2px;
+    background-color: var(--btn-bg);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.25s ease;
+  }
+
+  .nav-link:hover,
+  .nav-link:focus-visible,
+  .nav-link[aria-current='page'] {
     color: #ffffff !important;
   }
 
-  /* Action Button */
+  .nav-link:hover::after,
+  .nav-link:focus-visible::after,
+  .nav-link[aria-current='page']::after {
+    transform: scaleX(1);
+  }
+
+  .nav-link:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Login / Sign up pill
+     Hover: softens to the lighter brand pink, lifts 1px, picks up a soft
+     shadow. Press: drops back down. Keyboard focus gets a white ring. */
   .btn-auth {
     background-color: var(--btn-bg);
     color: var(--btn-text);
     border: none;
     font-size: 0.95rem;
-    transition: opacity 0.2s ease, transform 0.1s ease;
+    transition:
+      background-color 0.2s ease,
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .btn-auth:hover {
-    background-color: var(--btn-bg);
+    background-color: var(--btn-bg-hover);
     color: var(--btn-text);
-    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(44, 42, 40, 0.25);
+  }
+
+  .btn-auth:active {
+    background-color: var(--btn-bg-hover);
+    color: var(--btn-text);
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  .btn-auth:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 3px;
+    box-shadow: none;
+  }
+
+  /* Mobile menu: links are stacked and centred, so shrink each one to its
+     text; that way the underline hugs the word instead of spanning the row. */
+  @media (max-width: 991.98px) {
+    .custom-navbar .navbar-nav {
+      align-items: center;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-link,
+    .nav-link::after,
+    .btn-auth {
+      transition: none;
+    }
+
+    .btn-auth:hover {
+      transform: none;
+    }
+  }
+
+  /* Desktop: centre the links on the NAV itself, not in the leftover space
+     between the logo and the right-hand button. The logo is a fixed 200px
+     while the right side changes width (login button vs. user avatar), so
+     auto margins made the links drift. Absolute centring ignores both. */
+  @media (min-width: 992px) {
+    .custom-navbar .container-fluid {
+      position: relative;
+    }
+
+    .custom-navbar .navbar-nav {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0 !important;
+    }
   }
 
   /* Custom icon filter for Bootstrap navbar-toggler icon on teal background */

@@ -1,40 +1,47 @@
-
 ---
 import Layout from '../../layouts/Layout.astro';
 import Navbar from '../../components/Navbar.astro';
 import Footer from '../../components/Footer.astro';
-import { getCollection } from 'astro:content';
+import { supabase, type Recipe } from '../../lib/supabase';
 
-const recipes = await getCollection('recipes');
+// Look the recipe up by slug. Only approved ("live") recipes are public.
+const slug = Astro.params.slug;
 
-const recipe = recipes.find(
-  (item) =>
-    item.id === Astro.params.slug &&
-    item.data.status === 'live'
-);
+let recipe: Recipe | null = null;
+
+if (slug) {
+  const { data, error } = await supabase
+    .from('recipes')
+    .select('*')
+    .eq('slug', slug)
+    .eq('status', 'live')
+    .maybeSingle();
+
+  if (error) {
+    console.error('Recipe lookup failed:', error);
+  }
+
+  recipe = (data as Recipe | null) ?? null;
+}
 
 if (!recipe) {
   Astro.response.status = 404;
 }
 
-const {
-  title,
-  image,
-  tags = [],
-  difficulty,
-  description,
-  author,
-  prepTime,
-  cookTime,
-  servings,
-  ingredients = [],
-  instructions = [],
-  notes,
-} = recipe?.data ?? {
-  title: '',
-  ingredients: [],
-  instructions: [],
-};
+// Map database columns (snake_case, null) to the names the template uses
+// (camelCase, undefined) so the markup below doesn't need to change.
+const title = recipe?.title ?? '';
+const image = recipe?.image_url ?? undefined;
+const tags = recipe?.tags ?? [];
+const difficulty = recipe?.difficulty ?? undefined;
+const description = recipe?.description ?? undefined;
+const author = recipe?.author ?? undefined;
+const prepTime = recipe?.prep_time ?? undefined;
+const cookTime = recipe?.cook_time ?? undefined;
+const servings = recipe?.servings ?? undefined;
+const ingredients = recipe?.ingredients ?? [];
+const instructions = recipe?.instructions ?? [];
+const notes = recipe?.notes ?? undefined;
 
 const totalTime = (prepTime ?? 0) + (cookTime ?? 0);
 
