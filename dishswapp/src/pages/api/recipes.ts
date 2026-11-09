@@ -8,7 +8,7 @@ const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 const headers = () => ({
-  Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+  Authorization: `Bearer ${import.meta.env.GITHUB_TOKEN}`,
   Accept: "application/vnd.github+json",
   "X-GitHub-Api-Version": "2022-11-28",
   "Content-Type": "application/json",
@@ -64,7 +64,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return response("Unable to verify your account.", 401);
     }
 
-    const token = process.env.GITHUB_TOKEN;
+    const token = import.meta.env.GITHUB_TOKEN;
 
     if (!token) {
       return response("GitHub configuration is missing.", 500);
