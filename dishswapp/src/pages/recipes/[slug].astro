@@ -8,7 +8,9 @@ import { getCollection } from 'astro:content';
 const recipes = await getCollection('recipes');
 
 const recipe = recipes.find(
-  (item) => item.id === Astro.params.slug
+  (item) =>
+    item.id === Astro.params.slug &&
+    item.data.status === 'live'
 );
 
 if (!recipe) {
