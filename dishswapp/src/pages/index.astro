@@ -8,10 +8,12 @@ export const prerender = true;
 
 const posts = await getCollection('posts');
 import Navbar from "../components/Navbar.astro"
+import CuisineCard from "../components/CuisineCard.astro"
 ---
 
 <Layout title="Keystatic & Astro's Content Collections">
 <Navbar></Navbar>
 <Hero></Hero>
+<CuisineCard></CuisineCard>
 <Footer></Footer>
 </Layout>

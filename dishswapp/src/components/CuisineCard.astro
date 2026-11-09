@@ -1,0 +1,63 @@
+---
+// FoodCards.astro
+// Bootstrap-styled 3-column card component based on the visual example.
+// Uses Bootstrap 5 via CDN for styling. Drop this file into any Astro project
+// (e.g. src/components/FoodCards.astro) and import it from a page.
+
+const cards = [
+  {
+    cuisine: "Italian",
+    description: "Slow ragù, bright pesto, perfect pasta.",
+    badge: null,
+    color: "#F5C6C6", // soft pink
+  },
+  {
+    cuisine: "Mexican",
+    description: "Tinga, mole, tacos, the works.",
+    badge: null,
+    color: "#C8A47E", // warm brown
+  },
+  {
+    cuisine: "Asian",
+    description: "Maple salmon, miso ramen, congee.",
+    badge: null,
+    color: "#BBD3E7", // light blue
+  },
+];
+---
+
+<section class="container py-5">
+  <div class="row g-4">
+    {cards.map((card) => (
+      <div class="col-12 col-md-4">
+        <article class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden">
+          <div
+            class="card-img-top d-flex align-items-start justify-content-end p-3"
+            style={`background-color:${card.color};height:220px;`}
+          >
+            {card.badge && (
+              <span
+                class="badge rounded-pill px-3 py-2"
+                style="background-color:#E67E22;color:#fff;"
+              >
+                {card.badge}
+              </span>
+            )}
+          </div>
+          <div class="card-body p-4">
+            <h3 class="card-title h5 mb-2 fw-semibold">{card.cuisine}</h3>
+            <p class="card-text text-muted mb-0">{card.description}</p>
+          </div>
+        </article>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  /* Local tweaks so the component looks right even before Bootstrap loads.
+     Bootstrap's grid + utilities do the heavy lifting; these are fallbacks. */
+  .card-img-top {
+    width: 100%;
+  }
+</style>
