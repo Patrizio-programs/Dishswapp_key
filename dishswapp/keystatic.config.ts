@@ -93,6 +93,9 @@ status: fields.select({
         }),
 
         author: fields.text({ label: 'Author' }),
+        submittedBy: fields.text({
+  label: "Submitted By",
+}),
 
         image: fields.image({
           label: 'Recipe image',
