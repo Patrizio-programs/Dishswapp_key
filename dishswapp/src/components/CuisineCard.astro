@@ -7,21 +7,24 @@
 const cards = [
   {
     cuisine: "Italian",
+    slug: "italian",
     description: "Slow ragù, bright pesto, perfect pasta.",
     badge: null,
-    color: "#F5C6C6", // soft pink
+    color: "#F5C6C6",
   },
   {
     cuisine: "Mexican",
+    slug: "mexican",
     description: "Tinga, mole, tacos, the works.",
     badge: null,
-    color: "#C8A47E", // warm brown
+    color: "#C8A47E",
   },
   {
     cuisine: "Asian",
+    slug: "asian",
     description: "Maple salmon, miso ramen, congee.",
     badge: null,
-    color: "#BBD3E7", // light blue
+    color: "#BBD3E7",
   },
 ];
 ---
@@ -30,7 +33,10 @@ const cards = [
   <div class="row g-4">
     {cards.map((card) => (
       <div class="col-12 col-md-4">
-        <article class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden">
+        <a
+  href={`/cuisine/${card.slug}/`}
+  class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden text-decoration-none"
+>
           <div
             class="card-img-top d-flex align-items-start justify-content-end p-3"
             style={`background-color:${card.color};height:220px;`}
@@ -48,7 +54,7 @@ const cards = [
             <h3 class="card-title h5 mb-2 fw-semibold">{card.cuisine}</h3>
             <p class="card-text text-muted mb-0">{card.description}</p>
           </div>
-        </article>
+        </a>
       </div>
     ))}
   </div>

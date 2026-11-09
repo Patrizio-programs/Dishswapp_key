@@ -1,0 +1,145 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import RecipeCard from '../../components/RecipeCard.astro';
+import { getCollection } from 'astro:content';
+
+const cuisine = Astro.params.cuisine ?? '';
+
+const cuisineName =
+  cuisine.charAt(0).toUpperCase() + cuisine.slice(1);
+
+const recipes = await getCollection('recipes');
+
+const filteredRecipes = recipes
+  .filter((recipe) =>
+    recipe.data.status === 'live' &&
+    (recipe.data.tags ?? []).some(
+      (tag) => tag.toLowerCase() === cuisine.toLowerCase()
+    )
+  )
+  .sort((a, b) =>
+    a.data.title.localeCompare(b.data.title)
+  );
+---
+
+<Layout title={`${cuisineName} Recipes | DishSwapp`}>
+  <Navbar />
+
+  <main>
+    <section class="cuisine-header">
+      <div class="ds-container">
+        <p class="ds-eyebrow">EXPLORE BY CUISINE</p>
+        <h1>{cuisineName} Recipes</h1>
+        <p>
+          Explore delicious recipes from our {cuisineName} collection.
+        </p>
+      </div>
+    </section>
+
+    <section class="ds-container cuisine-section">
+
+      <a href="/" class="back-link">
+        <i class="bi bi-arrow-left"></i>
+        Back to home
+      </a>
+
+      <p class="recipe-count">
+        {filteredRecipes.length} recipes found
+      </p>
+
+      {filteredRecipes.length > 0 ? (
+        <div class="recipes-grid">
+          {filteredRecipes.map((recipe) => (
+            <RecipeCard
+              recipe={recipe}
+              href={`/recipes/${recipe.id}/`}
+            />
+          ))}
+        </div>
+      ) : (
+        <div class="empty-recipes">
+          <h3>No {cuisineName} recipes yet</h3>
+          <p>Check back soon for new recipes!</p>
+          <a href="/recipes/" class="browse-link">
+            Browse all recipes
+          </a>
+        </div>
+      )}
+
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .cuisine-header {
+    background: var(--ds-cream);
+    padding: 75px 0 65px;
+    text-align: center;
+  }
+
+  .cuisine-header h1 {
+    font-family: var(--ds-heading-font);
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    color: var(--ds-dark);
+    margin: 12px 0;
+  }
+
+  .cuisine-header p {
+    color: var(--ds-muted);
+  }
+
+  .cuisine-section {
+    padding-top: 40px;
+    padding-bottom: 75px;
+  }
+
+  .back-link {
+    display: inline-flex;
+    gap: 8px;
+    color: var(--ds-teal);
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 25px;
+  }
+
+  .recipe-count {
+    color: var(--ds-muted);
+    margin-bottom: 25px;
+  }
+
+  .recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 25px;
+  }
+
+  .empty-recipes {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--ds-cream);
+    border-radius: var(--ds-radius-md);
+  }
+
+  .browse-link {
+    display: inline-block;
+    margin-top: 15px;
+    color: var(--ds-teal);
+    font-weight: 600;
+  }
+
+  @media (max-width: 991px) {
+    .recipes-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 575px) {
+    .recipes-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
