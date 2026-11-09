@@ -38,7 +38,10 @@ const sortedRecipes = recipes.sort((a, b) =>
       {sortedRecipes.length > 0 ? (
         <div class="recipes-grid">
           {sortedRecipes.map((recipe) => (
-            <RecipeCard recipe={recipe} />
+            <RecipeCard
+  recipe={recipe}
+  href={`/recipes/${recipe.id}/`}
+/>
           ))}
         </div>
       ) : (
