@@ -1,0 +1,135 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Recipe Submitted | DishSwapp">
+  <Navbar />
+
+  <main class="success-page">
+    <div class="success-card">
+      <div class="success-icon">
+        <i class="bi bi-check-lg"></i>
+      </div>
+
+      <span class="eyebrow">THANK YOU FOR SHARING</span>
+
+      <h1>Your recipe has been submitted!</h1>
+
+      <p>
+        Thank you for sharing your recipe with the DishSwapp community.
+        Your submission is now pending review and should be approved
+        within 24 hours.
+      </p>
+
+      <p class="note">
+        Once approved, your recipe will appear in our recipe collection.
+      </p>
+
+      <div class="success-actions">
+        <a href="/recipes" class="primary-btn">Explore recipes</a>
+        <a href="/submit-recipe" class="secondary-btn">Submit another recipe</a>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+
+  <style>
+    .success-page {
+      min-height: 75vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      background: #f8f9f6;
+    }
+
+    .success-card {
+      width: 100%;
+      max-width: 650px;
+      padding: 55px 35px;
+      text-align: center;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 35px rgba(0, 0, 0, 0.06);
+    }
+
+    .success-icon {
+      width: 75px;
+      height: 75px;
+      margin: 0 auto 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #e6f3e9;
+      color: #16703d;
+      font-size: 38px;
+    }
+
+    .eyebrow {
+      color: #16703d;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+
+    h1 {
+      margin: 15px 0;
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      color: #083045;
+    }
+
+    .success-card p {
+      color: #626b67;
+      line-height: 1.8;
+      font-size: 16px;
+    }
+
+    .note {
+      font-size: 14px !important;
+    }
+
+    .success-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .success-actions a {
+      padding: 13px 22px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .primary-btn {
+      background: #16703d;
+      color: white;
+    }
+
+    .secondary-btn {
+      border: 1px solid #16703d;
+      color: #16703d;
+    }
+
+    @media (max-width: 500px) {
+      .success-card {
+        padding: 40px 20px;
+      }
+
+      h1 {
+        font-size: 29px;
+      }
+
+      .success-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</Layout>

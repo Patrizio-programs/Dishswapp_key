@@ -276,7 +276,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     return Response.redirect(
-      new URL("/submit-recipe?success=1", request.url),
+      new URL("/recipe-submitted", request.url),
       303
     );
 
