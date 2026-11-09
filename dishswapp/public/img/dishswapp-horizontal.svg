@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DishSwapp — horizontal lockup (symbol + wordmark)
+     Use in nav bars, headers, document footers.
+     Clear-space: 1x the symbol's height on every side of the lockup.
+     Minimum size: 32 px tall. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 100" role="img" aria-label="DishSwapp">
+  <!-- Symbol (left): 100×100 scaled to 100×100 at position 0,0 -->
+  <g transform="translate(0,0) scale(1)">
+    <circle cx="50" cy="50" r="48" fill="#3D717C"/>
+    <path d="M 18 50 A 32 32 0 0 1 82 50"
+          fill="none" stroke="#F9B7A4" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 82 50 A 32 32 0 0 1 18 50"
+          fill="none" stroke="#E07A3B" stroke-width="6" stroke-linecap="round"/>
+    <line x1="50" y1="18" x2="50" y2="82"
+          stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+  </g>
+  <!-- Wordmark (right): starts at x=120 -->
+  <text x="120" y="68"
+        font-family="'Playfair Display', Georgia, 'Times New Roman', serif"
+        font-weight="800"
+        font-size="56"
+        letter-spacing="-1.5"
+        fill="#2C2A28">Dish</text>
+  <text x="247" y="68"
+        font-family="'Playfair Display', Georgia, 'Times New Roman', serif"
+        font-weight="500"
+        font-style="italic"
+        font-size="56"
+        letter-spacing="-1"
+        fill="#3D717C">Swapp</text>
+</svg>

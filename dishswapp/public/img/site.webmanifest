@@ -1,0 +1,28 @@
+{
+  "name": "DishSwapp — Open-source collaborative recipes",
+  "short_name": "DishSwapp",
+  "description": "Collect, collaborate, cook. An open-source community where home cooks discover, swap and improve recipes together.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FBF7F1",
+  "theme_color": "#3D717C",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "categories": ["food", "cooking", "lifestyle", "social"],
+  "icons": [
+    { "src": "/favicon/favicon.svg",        "sizes": "any",      "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon/favicon-16x16.png",  "sizes": "16x16",   "type": "image/png" },
+    { "src": "/favicon/favicon-32x32.png",  "sizes": "32x32",   "type": "image/png" },
+    { "src": "/favicon/favicon-96x96.png",  "sizes": "96x96",   "type": "image/png" },
+    { "src": "/favicon/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Browse cuisines", "short_name": "Cuisines", "url": "/?filter=cuisines" },
+    { "name": "My cookbook",     "short_name": "Cookbook", "url": "/cookbook" },
+    { "name": "Add a recipe",    "short_name": "Add",       "url": "/add-recipe" }
+  ]
+}

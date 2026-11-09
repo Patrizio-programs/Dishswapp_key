@@ -1,0 +1,117 @@
+---
+// Astro frontmatter
+import { Show, UserButton} from "@clerk/astro/components"
+---
+
+<nav class="navbar navbar-expand-lg custom-navbar py-3">
+  <div class="container-fluid px-4">
+    <!-- Brand Logo / Name -->
+    <a class="navbar-brand d-flex align-items-center me-auto" href="/">
+    <img src="./img/dishswapp-wordmark-on-dark.png" width="200px"/>
+    </a>
+
+    <!-- Mobile Toggler (Hidden on desktop due to navbar-expand-lg) -->
+    <button
+      class="navbar-toggler border-0 shadow-none text-white d-lg-none"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarContent"
+      aria-controls="navbarContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Nav Links & Button -->
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <!-- Centered Navigation Links -->
+      <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-3 text-center text-lg-start">
+        <li class="nav-item">
+          <a class="nav-link text-white-50 text-white-hover px-3" href="/dashboard">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white-50 text-white-hover px-3" href="/about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white-50 text-white-hover px-3" href="#donate">Donate</a>
+        </li>
+      </ul>
+
+      <!-- Right Action Button -->
+      <div class="d-flex justify-content-center pt-2 pt-lg-0">
+         <Show when="signed-out"> 
+        <a href="/login" class="btn btn-auth rounded-pill px-4 py-2 fw-semibold">
+          Login / Sign up
+        </a>
+        </Show>
+        <Show when="signed-in">
+        <UserButton />
+      </Show>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<style>
+  /* Custom color variables based on the image */
+  :root {
+    --nav-bg: #3c737c;
+    --btn-bg: #ffb59f;
+    --btn-text: #2c2c2c;
+  }
+
+  /* Navbar background */
+  .custom-navbar {
+    background-color: var(--nav-bg);
+  }
+
+  /* Brand Typography */
+  .brand-dish {
+    font-family: serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+  }
+
+  .brand-swapp {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.6rem;
+    color: var(--btn-bg);
+  }
+
+  /* Navigation Link styles */
+  .nav-link {
+    font-weight: 400;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.85) !important;
+    transition: color 0.2s ease;
+  }
+
+  .nav-link:hover {
+    color: #ffffff !important;
+  }
+
+  /* Action Button */
+  .btn-auth {
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
+    border: none;
+    font-size: 0.95rem;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+  }
+
+  .btn-auth:hover {
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
+    opacity: 0.9;
+  }
+
+  /* Custom icon filter for Bootstrap navbar-toggler icon on teal background */
+  .navbar-toggler-icon {
+    filter: invert(1);
+  }
+</style>

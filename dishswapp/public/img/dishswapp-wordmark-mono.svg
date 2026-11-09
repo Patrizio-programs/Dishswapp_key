@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DishSwapp — monochrome wordmark (single-color, ink only)
+     Use for: print, fax, single-color stamps, ETAs where color isn't available.
+     Tintable: change fill on the root <g> to recolor the whole mark. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 70" role="img" aria-label="DishSwapp">
+  <g fill="#2C2A28">
+    <text x="0" y="56"
+          font-family="'Playfair Display', Georgia, 'Times New Roman', serif"
+          font-weight="800"
+          font-size="64"
+          letter-spacing="-2">Dish</text>
+    <text x="148" y="56"
+          font-family="'Playfair Display', Georgia, 'Times New Roman', serif"
+          font-weight="500"
+          font-style="italic"
+          font-size="64"
+          letter-spacing="-1">Swapp</text>
+  </g>
+</svg>

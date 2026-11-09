@@ -1,2 +1,0 @@
-# Dishswapp_key
-DISHWAPP WITH KEYSTATIC

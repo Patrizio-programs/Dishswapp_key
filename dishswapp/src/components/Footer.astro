@@ -1,0 +1,70 @@
+---
+// Footer.astro
+// Bootstrap 5 styled footer for the DishSwapp site.
+// Three-column layout: brand + license | About links | Follow links.
+// Drop this file into src/components/Footer.astro and import it on any page.
+
+const aboutLinks = [
+  { label: "About Project", href: "#" },
+  { label: "Donate", href: "#" },
+];
+
+const followLinks = [
+  { label: "GitHub", href: "https://github.com" },
+
+];
+---
+
+<footer
+  class="text-white pt-5 pb-4 mt-auto"
+  style="background-color:#0E5B5B;"
+>
+  <div class="container">
+    <div class="row gy-4">
+
+      <!-- Brand column -->
+      <div class="col-12 col-md-4">
+        <h5 class="fw-bold mb-2">DishSwapp</h5>
+        <p class="mb-0 text-white-50 small">
+          Open source recipes · MIT
+        </p>
+      </div>
+
+      <!-- About column -->
+      <div class="col-6 col-md-4">
+        <h6 class="text-uppercase fw-semibold mb-3">About</h6>
+        <ul class="list-unstyled mb-0 small">
+          {aboutLinks.map((l) => (
+            <li class="mb-2">
+              <a href={l.href} class="text-white-50 text-decoration-none">
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Follow column -->
+      <div class="col-6 col-md-4">
+        <h6 class="text-uppercase fw-semibold mb-3">Follow</h6>
+        <ul class="list-unstyled mb-0 small">
+          {followLinks.map((l) => (
+            <li class="mb-2">
+              <a href={l.href} class="text-white-50 text-decoration-none">
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</footer>
+
+<style>
+  a.text-white-50:hover {
+    color: #fff !important;
+    text-decoration: underline !important;
+  }
+</style>

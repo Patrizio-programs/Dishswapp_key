@@ -15,14 +15,15 @@
   },
   "dependencies": {
     "@astrojs/markdoc": "^2.0.1",
-    "@astrojs/node": "^11.0.0",
+    "@astrojs/node": "^11.1.11",
     "@astrojs/react": "^6.0.0",
+    "@clerk/astro": "^4.1.22",
+    "@keystatic/astro": "^6.0.0",
+    "@keystatic/core": "^0.6.7",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "astro": "^7.0.4",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "@keystatic/astro": "^6.0.0",
-    "@keystatic/core": "^0.6.7"
+    "react-dom": "^19.2.8"
   }
 }

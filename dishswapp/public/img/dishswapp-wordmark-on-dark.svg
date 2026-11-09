@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DishSwapp — reversed wordmark, for use on teal/dark backgrounds
+     Whole word is white; "Swapp" uses peachy-pink #F9B7A4 for the brand accent. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 70" role="img" aria-label="DishSwapp">
+  <text x="0" y="56"
+        font-family="'Playfair Display', Georgia, 'Times New Roman', serif"
+        font-weight="800"
+        font-size="64"
+        letter-spacing="-2"
+        fill="#FFFFFF">Dish</text>
+  <text x="148" y="56"
+        font-family="'Playfair Display', Georgia, 'Times New Roman', serif"
+        font-weight="500"
+        font-style="italic"
+        font-size="64"
+        letter-spacing="-1"
+        fill="#F9B7A4">Swapp</text>
+</svg>
