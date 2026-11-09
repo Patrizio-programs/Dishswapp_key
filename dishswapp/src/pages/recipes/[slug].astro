@@ -1,0 +1,432 @@
+
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import { getCollection } from 'astro:content';
+
+const recipes = await getCollection('recipes');
+
+const recipe = recipes.find(
+  (item) => item.id === Astro.params.slug
+);
+
+if (!recipe) {
+  Astro.response.status = 404;
+}
+
+const {
+  title,
+  image,
+  tags = [],
+  difficulty,
+  description,
+  author,
+  prepTime,
+  cookTime,
+  servings,
+  ingredients = [],
+  instructions = [],
+  notes,
+} = recipe?.data ?? {
+  title: '',
+  ingredients: [],
+  instructions: [],
+};
+
+const totalTime = (prepTime ?? 0) + (cookTime ?? 0);
+
+const displayDifficulty =
+  difficulty && difficulty !== 'none'
+    ? difficulty.charAt(0).toUpperCase() + difficulty.slice(1)
+    : null;
+---
+
+<Layout title={recipe ? `${title} | DishSwapp` : 'Recipe Not Found | DishSwapp'}>
+  <Navbar />
+
+  <main>
+    {recipe ? (
+      <div class="recipe-page ds-container">
+
+        <a href="/recipes/" class="back-link">
+          <i class="bi bi-arrow-left"></i>
+          Back to recipes
+        </a>
+
+        <section class="recipe-hero">
+
+          <div class="recipe-hero__image">
+            {image ? (
+              <img src={image} alt={title} />
+            ) : (
+              <div class="recipe-placeholder">
+                <span>DishSwapp</span>
+              </div>
+            )}
+          </div>
+
+          <div class="recipe-hero__content">
+
+            <div class="recipe-tags">
+              {tags.map((tag) => (
+                <span class="recipe-tag">{tag}</span>
+              ))}
+
+              {displayDifficulty && (
+                <span class="recipe-difficulty">
+                  {displayDifficulty}
+                </span>
+              )}
+            </div>
+
+            <h1>{title}</h1>
+
+            {description && (
+              <p class="recipe-description">{description}</p>
+            )}
+
+            <div class="recipe-meta">
+
+              {prepTime !== undefined && (
+                <div>
+                  <i class="bi bi-clock"></i>
+                  <span>Prep time</span>
+                  <strong>{prepTime} min</strong>
+                </div>
+              )}
+
+              {cookTime !== undefined && (
+                <div>
+                  <i class="bi bi-fire"></i>
+                  <span>Cook time</span>
+                  <strong>{cookTime} min</strong>
+                </div>
+              )}
+
+              {(prepTime !== undefined || cookTime !== undefined) && (
+                <div>
+                  <i class="bi bi-hourglass-split"></i>
+                  <span>Total time</span>
+                  <strong>{totalTime} min</strong>
+                </div>
+              )}
+
+              {servings !== undefined && (
+                <div>
+                  <i class="bi bi-people"></i>
+                  <span>Servings</span>
+                  <strong>{servings}</strong>
+                </div>
+              )}
+
+            </div>
+
+            {author && (
+              <p class="recipe-author">
+                Recipe by <strong>{author}</strong>
+              </p>
+            )}
+
+          </div>
+        </section>
+
+        <section class="recipe-body">
+
+          <div class="ingredients-section">
+            <h2>Ingredients</h2>
+
+            <ul class="ingredients-list">
+              {ingredients.map((ingredient) => (
+                <li>
+                  <i class="bi bi-check2"></i>
+                  {ingredient}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="instructions-section">
+            <h2>Instructions</h2>
+
+            <ol class="instructions-list">
+              {instructions.map((instruction) => (
+                <li>{instruction}</li>
+              ))}
+            </ol>
+          </div>
+
+          {notes && (
+            <div class="recipe-notes">
+              <h2>Notes</h2>
+              <p>{notes}</p>
+            </div>
+          )}
+
+        </section>
+      </div>
+    ) : (
+      <section class="not-found ds-container">
+        <h1>Recipe not found</h1>
+        <p>Sorry, we couldn't find the recipe you're looking for.</p>
+        <a href="/recipes/" class="back-button">Browse recipes</a>
+      </section>
+    )}
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .recipe-page {
+    padding-top: 35px;
+    padding-bottom: 80px;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ds-teal);
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 30px;
+  }
+
+  .back-link:hover {
+    color: var(--ds-spice);
+  }
+
+  .recipe-hero {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 45px;
+    align-items: center;
+    margin-bottom: 65px;
+  }
+
+  .recipe-hero__image {
+    aspect-ratio: 16 / 11;
+    overflow: hidden;
+    border-radius: var(--ds-radius-lg);
+    background: var(--ds-pink);
+  }
+
+  .recipe-hero__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .recipe-placeholder {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, var(--ds-teal), #7D9B96);
+    color: white;
+    font-family: var(--ds-heading-font);
+    font-size: 2rem;
+  }
+
+  .recipe-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .recipe-tag,
+  .recipe-difficulty {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .recipe-tag {
+    background: #E8F0EE;
+    color: var(--ds-teal);
+  }
+
+  .recipe-difficulty {
+    background: #FFF0E6;
+    color: var(--ds-spice);
+  }
+
+  .recipe-hero h1 {
+    font-family: var(--ds-heading-font);
+    font-size: clamp(2.3rem, 4vw, 3.5rem);
+    color: var(--ds-dark);
+    margin-bottom: 15px;
+  }
+
+  .recipe-description {
+    color: var(--ds-muted);
+    line-height: 1.7;
+    font-size: 1rem;
+    margin-bottom: 25px;
+  }
+
+  .recipe-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    padding: 22px 0;
+    border-top: 1px solid var(--ds-border);
+    border-bottom: 1px solid var(--ds-border);
+  }
+
+  .recipe-meta div {
+    display: grid;
+    grid-template-columns: 25px 1fr;
+    align-items: center;
+    column-gap: 8px;
+  }
+
+  .recipe-meta i {
+    grid-row: span 2;
+    color: var(--ds-teal);
+    font-size: 1.2rem;
+  }
+
+  .recipe-meta span {
+    color: var(--ds-muted);
+    font-size: 0.8rem;
+  }
+
+  .recipe-meta strong {
+    color: var(--ds-dark);
+    font-size: 0.95rem;
+  }
+
+  .recipe-author {
+    margin-top: 20px;
+    color: var(--ds-muted);
+  }
+
+  .recipe-body {
+    max-width: 850px;
+    margin: 0 auto;
+  }
+
+  .recipe-body h2 {
+    font-family: var(--ds-heading-font);
+    font-size: 2rem;
+    margin-bottom: 25px;
+    color: var(--ds-dark);
+  }
+
+  .ingredients-section,
+  .instructions-section {
+    margin-bottom: 55px;
+  }
+
+  .ingredients-list,
+  .instructions-list {
+    padding: 0;
+    margin: 0;
+  }
+
+  .ingredients-list {
+    list-style: none;
+  }
+
+  .ingredients-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--ds-border);
+    color: var(--ds-dark);
+    line-height: 1.6;
+  }
+
+  .ingredients-list i {
+    color: var(--ds-teal);
+    font-size: 1.1rem;
+  }
+
+  .instructions-list {
+    list-style: none;
+    counter-reset: steps;
+  }
+
+  .instructions-list li {
+    counter-increment: steps;
+    position: relative;
+    padding: 0 0 25px 55px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--ds-border);
+    line-height: 1.8;
+    color: var(--ds-dark);
+  }
+
+  .instructions-list li::before {
+    content: counter(steps);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--ds-teal);
+    color: white;
+    font-weight: 600;
+  }
+
+  .recipe-notes {
+    background: var(--ds-cream);
+    border-radius: var(--ds-radius-md);
+    padding: 25px;
+  }
+
+  .recipe-notes h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+
+  .recipe-notes p {
+    margin: 0;
+    line-height: 1.7;
+    color: var(--ds-muted);
+  }
+
+  .not-found {
+    padding-top: 100px;
+    padding-bottom: 100px;
+    text-align: center;
+  }
+
+  .not-found h1 {
+    font-family: var(--ds-heading-font);
+  }
+
+  .back-button {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 12px 22px;
+    background: var(--ds-teal);
+    color: white;
+    border-radius: var(--ds-radius-sm);
+    text-decoration: none;
+  }
+
+  @media (max-width: 767px) {
+    .recipe-hero {
+      grid-template-columns: 1fr;
+      gap: 25px;
+    }
+
+    .recipe-hero h1 {
+      font-size: 2.3rem;
+    }
+
+    .recipe-body h2 {
+      font-size: 1.7rem;
+    }
+  }
+</style>
