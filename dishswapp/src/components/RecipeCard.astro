@@ -1,9 +1,8 @@
-
 ---
-import type { CollectionEntry } from 'astro:content';
+import type { Recipe } from '../lib/supabase';
 
 interface Props {
-  recipe: CollectionEntry<'recipes'>;
+  recipe: Recipe;
   href: string;
 }
 
@@ -11,17 +10,17 @@ const { recipe, href } = Astro.props;
 
 const {
   title,
-  image,
+  image_url,
   tags = [],
   difficulty,
   description,
   author,
-  prepTime,
-  cookTime,
+  prep_time,
+  cook_time,
   servings,
-} = recipe.data;
+} = recipe;
 
-const totalTime = (prepTime ?? 0) + (cookTime ?? 0);
+const totalTime = (prep_time ?? 0) + (cook_time ?? 0);
 
 const cuisine = tags[0];
 
