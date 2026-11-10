@@ -96,12 +96,9 @@ const recipeJsonLd = recipe
 <Layout
   title={recipe ? `${title} | DishSwapp` : 'Recipe Not Found | DishSwapp'}
   description={metaDescription}
-  image={image}
-  imageAlt={recipe ? title : undefined}
-  type="article"
-  noindex={!recipe}
-  jsonLd={recipeJsonLd}
+  ogImage={image}
 >
+  {recipeJsonLd && <script type="application/ld+json" set:html={JSON.stringify(recipeJsonLd)} />}
   <Navbar />
 
   <main>
