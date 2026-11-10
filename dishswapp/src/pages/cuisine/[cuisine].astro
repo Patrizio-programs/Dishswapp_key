@@ -31,7 +31,17 @@ const filteredRecipes = recipes.filter((recipe) =>
 );
 ---
 
-<Layout title={`${cuisineName} Recipes | DishSwapp`}>
+<Layout
+  title={`${cuisineName} Recipes | DishSwapp`}
+  description={
+    filteredRecipes.length > 0
+      ? `Cook ${filteredRecipes.length} ${cuisineName} recipe${filteredRecipes.length === 1 ? '' : 's'} shared by the DishSwapp community, including ${filteredRecipes.slice(0, 3).map((r) => r.title).join(', ')}.`
+      : `Explore ${cuisineName} recipes from the DishSwapp community.`
+  }
+  image={filteredRecipes.find((r) => r.image_url)?.image_url ?? undefined}
+  imageAlt={`${cuisineName} recipes on DishSwapp`}
+  noindex={filteredRecipes.length === 0}
+>
   <Navbar />
 
   <main>

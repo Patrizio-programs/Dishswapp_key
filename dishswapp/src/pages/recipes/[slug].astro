@@ -49,9 +49,59 @@ const displayDifficulty =
   difficulty && difficulty !== 'none'
     ? difficulty.charAt(0).toUpperCase() + difficulty.slice(1)
     : null;
+
+// ---- Share-card text ------------------------------------------------------
+// Use the author's description; otherwise build one from the facts we have.
+const cuisineTag = tags[0];
+const metaDescription = recipe
+  ? description ??
+    [
+      `${title}${cuisineTag ? `, a ${cuisineTag} recipe` : ' recipe'} shared on DishSwapp`,
+      author ? `by ${author}` : null,
+    ]
+      .filter(Boolean)
+      .join(' ') +
+      `. ${ingredients.length} ingredients` +
+      (totalTime > 0 ? `, ${totalTime} min` : '') +
+      (servings ? `, serves ${servings}` : '') +
+      '.'
+  : 'This recipe could not be found on DishSwapp.';
+
+// ---- schema.org Recipe (rich results in Google) ----------------------------
+const minutes = (n?: number) => (n ? `PT${n}M` : undefined);
+const recipeJsonLd = recipe
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'Recipe',
+      name: title,
+      description: metaDescription,
+      image: image ? [image] : undefined,
+      author: author ? { '@type': 'Person', name: author } : undefined,
+      datePublished: recipe.created_at,
+      prepTime: minutes(prepTime),
+      cookTime: minutes(cookTime),
+      totalTime: minutes(totalTime || undefined),
+      recipeYield: servings ? `${servings} servings` : undefined,
+      keywords: tags.length ? tags.join(', ') : undefined,
+      recipeCuisine: cuisineTag,
+      recipeIngredient: ingredients,
+      recipeInstructions: instructions.map((text) => ({
+        '@type': 'HowToStep',
+        text,
+      })),
+    }
+  : undefined;
 ---
 
-<Layout title={recipe ? `${title} | DishSwapp` : 'Recipe Not Found | DishSwapp'}>
+<Layout
+  title={recipe ? `${title} | DishSwapp` : 'Recipe Not Found | DishSwapp'}
+  description={metaDescription}
+  image={image}
+  imageAlt={recipe ? title : undefined}
+  type="article"
+  noindex={!recipe}
+  jsonLd={recipeJsonLd}
+>
   <Navbar />
 
   <main>
@@ -70,7 +120,7 @@ const displayDifficulty =
               <img src={image} alt={title} />
             ) : (
               <div class="recipe-placeholder">
-                <span>DishSwapp</span>
+                <img src="/img/dishswapp-symbol.svg" alt="" width="120" height="120" />
               </div>
             )}
           </div>
@@ -191,6 +241,13 @@ const displayDifficulty =
       </div>
     ) : (
       <section class="not-found ds-container">
+        <img
+          src="/img/dishswapp-symbol.svg"
+          alt=""
+          width="72"
+          height="72"
+          class="not-found__logo"
+        />
         <h1>Recipe not found</h1>
         <p>Sorry, we couldn't find the recipe you're looking for.</p>
         <a href="/recipes/" class="back-button">Browse recipes</a>
@@ -287,10 +344,12 @@ const displayDifficulty =
     height: 100%;
     display: grid;
     place-items: center;
-    background: linear-gradient(135deg, var(--ds-teal), #7D9B96);
-    color: white;
-    font-family: var(--ds-heading-font);
-    font-size: 2rem;
+    background: linear-gradient(135deg, var(--ds-cream), #EFE5D4);
+  }
+
+  .recipe-placeholder img {
+    width: 120px;
+    height: 120px;
   }
 
   .recipe-tags {
@@ -463,6 +522,11 @@ const displayDifficulty =
     padding-top: 100px;
     padding-bottom: 100px;
     text-align: center;
+  }
+
+  .not-found__logo {
+    display: block;
+    margin: 0 auto 18px;
   }
 
   .not-found h1 {

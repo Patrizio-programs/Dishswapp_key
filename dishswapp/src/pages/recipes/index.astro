@@ -29,7 +29,10 @@ const allTags = [
 ].sort((a, b) => a.localeCompare(b));
 ---
 
-<Layout title="Recipes | DishSwapp">
+<Layout
+  title="Explore Recipes | DishSwapp"
+  description={`Browse ${liveRecipes.length} community-shared recipe${liveRecipes.length === 1 ? '' : 's'}${allTags.length ? ` across ${allTags.length} cuisine${allTags.length === 1 ? '' : 's'} and tags` : ''} on DishSwapp. Discover, cook and share recipes from different kitchens around the world.`}
+>
   <Navbar />
 
   <main>
