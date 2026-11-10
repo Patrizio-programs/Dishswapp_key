@@ -10,7 +10,7 @@ interface Props {
 
 const { title, description, ogImage } = Astro.props;
 
-const rawImage = ogImage ?? "/img/og-default.jpg";
+const rawImage = ogImage ?? "/img/og-default.png";
 const ogImageUrl = rawImage.startsWith("http")
   ? rawImage
   : `${SITE}${rawImage}`;
