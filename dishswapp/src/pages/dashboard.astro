@@ -65,17 +65,18 @@ const toEntry = (r: Recipe) => ({
   },
 });
 
-const userRecipes = ((rows ?? []) as Recipe[]).map(toEntry);
+const userRecipes: Recipe[] = (rows ?? []) as Recipe[];
 
 // LIVE recipes — shown as cards, sorted alphabetically by title
 // (matches the sort used on /recipes).
 const liveRecipes = userRecipes
-  .filter((r) => r.data.status === 'live')
-  .sort((a, b) => a.data.title.localeCompare(b.data.title));
+  .filter((recipe) => recipe.status === 'live')
+  .sort((a, b) => a.title.localeCompare(b.title));
+
 
 // PENDING recipes — only the count matters.
 const pendingCount = userRecipes.filter(
-  (r) => r.data.status === 'pending'
+  (recipe) => recipe.status === 'pending'
 ).length;
 
 // ---- Display name (same fallback chain as submit-recipe.astro) ----------
@@ -160,7 +161,7 @@ const displayName =
             {liveRecipes.map((recipe) => (
               <RecipeCard
                 recipe={recipe}
-                href={`/recipes/${recipe.id}/`}
+                href={`/recipes/${recipe.slug}/`}
               />
             ))}
           </div>

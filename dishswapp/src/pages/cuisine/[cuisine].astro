@@ -3,25 +3,32 @@ import Layout from '../../layouts/Layout.astro';
 import Navbar from '../../components/Navbar.astro';
 import Footer from '../../components/Footer.astro';
 import RecipeCard from '../../components/RecipeCard.astro';
-import { getCollection } from 'astro:content';
+import { supabase, type Recipe } from '../../lib/supabase';
 
 const cuisine = Astro.params.cuisine ?? '';
 
 const cuisineName =
   cuisine.charAt(0).toUpperCase() + cuisine.slice(1);
 
-const recipes = await getCollection('recipes');
+// Fetch all live recipes from Supabase.
+const { data, error } = await supabase
+  .from('recipes')
+  .select('*')
+  .eq('status', 'live')
+  .order('title', { ascending: true });
 
-const filteredRecipes = recipes
-  .filter((recipe) =>
-    recipe.data.status === 'live' &&
-    (recipe.data.tags ?? []).some(
-      (tag) => tag.toLowerCase() === cuisine.toLowerCase()
-    )
+if (error) {
+  console.error('Failed to fetch cuisine recipes:', error);
+}
+
+const recipes: Recipe[] = data ?? [];
+
+// Filter recipes by cuisine tag.
+const filteredRecipes = recipes.filter((recipe) =>
+  (recipe.tags ?? []).some(
+    (tag) => tag.toLowerCase() === cuisine.toLowerCase()
   )
-  .sort((a, b) =>
-    a.data.title.localeCompare(b.data.title)
-  );
+);
 ---
 
 <Layout title={`${cuisineName} Recipes | DishSwapp`}>
@@ -54,7 +61,7 @@ const filteredRecipes = recipes
           {filteredRecipes.map((recipe) => (
             <RecipeCard
               recipe={recipe}
-              href={`/recipes/${recipe.id}/`}
+              href={`/recipes/${recipe.slug}/`}
             />
           ))}
         </div>
