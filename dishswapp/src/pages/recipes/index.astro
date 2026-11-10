@@ -4,21 +4,27 @@ import Layout from '../../layouts/Layout.astro';
 import Navbar from '../../components/Navbar.astro';
 import Footer from '../../components/Footer.astro';
 import RecipeCard from '../../components/RecipeCard.astro';
-import { getCollection } from 'astro:content';
+import { supabase, type Recipe } from '../../lib/supabase';
 
-const recipes = await getCollection('recipes');
+const { data, error } = await supabase
+  .from('recipes')
+  .select('*')
+  .eq('status', 'live')
+  .order('title', { ascending: true });
 
-// Only show recipes that have been approved and set to live.
-const liveRecipes = recipes.filter(
-  (recipe) => recipe.data.status === 'live'
-);
+if (error) {
+  console.error('Failed to fetch recipes:', error);
+}
 
-const sortedRecipes = liveRecipes.sort((a, b) =>
-  a.data.title.localeCompare(b.data.title)
-);
+const recipes: Recipe[] = data ?? [];
+
+const liveRecipes = recipes;
+
+const sortedRecipes = liveRecipes;
+
 const allTags = [
   ...new Set(
-    liveRecipes.flatMap((recipe) => recipe.data.tags ?? [])
+    liveRecipes.flatMap((recipe) => recipe.tags ?? [])
   ),
 ].sort((a, b) => a.localeCompare(b));
 ---
