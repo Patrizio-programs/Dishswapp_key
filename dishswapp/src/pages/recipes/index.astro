@@ -99,26 +99,26 @@ const allTags = [
           <div class="recipes-grid" id="recipes-grid">
             {sortedRecipes.map((recipe) => {
               const searchableContent = [
-                recipe.data.title,
-                recipe.data.description ?? '',
-                ...(recipe.data.ingredients ?? []),
-                ...(recipe.data.tags ?? []),
-              ].join(' ').toLowerCase();
+  recipe.title,
+  recipe.description ?? '',
+  ...(recipe.ingredients ?? []),
+  ...(recipe.tags ?? []),
+].join(' ').toLowerCase();
 
-              const tags = (recipe.data.tags ?? [])
-                .map((tag) => tag.toLowerCase())
-                .join('|');
+const tags = (recipe.tags ?? [])
+  .map((tag) => tag.toLowerCase())
+  .join('|');
 
               return (
                 <div
                   class="recipe-item"
                   data-search={searchableContent}
                   data-tags={tags}
-                  data-difficulty={recipe.data.difficulty ?? 'none'}
+                  data-difficulty={recipe.difficulty ?? 'none'}
                 >
                   <RecipeCard
                     recipe={recipe}
-                    href={`/recipes/${recipe.id}/`}
+                    href={`/recipes/${recipe.slug}/`}
                   />
                 </div>
               );
