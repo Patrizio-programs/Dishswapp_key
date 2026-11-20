@@ -10,25 +10,37 @@ const cuisine = Astro.params.cuisine ?? '';
 const cuisineName =
   cuisine.charAt(0).toUpperCase() + cuisine.slice(1);
 
-// Fetch all live recipes from Supabase.
-const { data, error } = await supabase
+const pageSize = 9;
+const requestedPage = Math.max(1, Number.parseInt(Astro.url.searchParams.get('page') ?? '1', 10) || 1);
+const titleCaseCuisine = cuisine.replace(/\b\w/g, (letter) => letter.toUpperCase());
+const cuisineVariants = [...new Set([cuisine, titleCaseCuisine, cuisine.toUpperCase()])];
+
+const { data, error, count } = await supabase
   .from('recipes')
-  .select('*')
+  .select('*', { count: 'exact' })
   .eq('status', 'live')
-  .order('title', { ascending: true });
+  .overlaps('tags', cuisineVariants)
+  .order('title', { ascending: true })
+  .range((requestedPage - 1) * pageSize, requestedPage * pageSize - 1);
 
 if (error) {
   console.error('Failed to fetch cuisine recipes:', error);
 }
 
-const recipes: Recipe[] = data ?? [];
-
-// Filter recipes by cuisine tag.
-const filteredRecipes = recipes.filter((recipe) =>
-  (recipe.tags ?? []).some(
-    (tag) => tag.toLowerCase() === cuisine.toLowerCase()
-  )
-);
+const filteredRecipes: Recipe[] = data ?? [];
+const totalRecipes = count ?? 0;
+const totalPages = Math.max(1, Math.ceil(totalRecipes / pageSize));
+const currentPage = Math.min(requestedPage, totalPages);
+if (requestedPage > totalPages) {
+  const redirectUrl = new URL(Astro.url);
+  redirectUrl.searchParams.set('page', String(totalPages));
+  return Astro.redirect(`${redirectUrl.pathname}${redirectUrl.search}`);
+}
+const makePageHref = (page: number) => {
+  const url = new URL(Astro.url);
+  url.searchParams.set('page', String(page));
+  return `${url.pathname}${url.search}`;
+};
 ---
 
 <Layout
@@ -63,7 +75,7 @@ const filteredRecipes = recipes.filter((recipe) =>
       </a>
 
       <p class="recipe-count">
-        {filteredRecipes.length} recipes found
+        {totalRecipes} {totalRecipes === 1 ? 'recipe' : 'recipes'} found
       </p>
 
       {filteredRecipes.length > 0 ? (
@@ -84,6 +96,12 @@ const filteredRecipes = recipes.filter((recipe) =>
           </a>
         </div>
       )}
+
+      {totalPages > 1 && <nav class="pagination" aria-label="Cuisine recipe pages">
+        {currentPage > 1 ? <a href={makePageHref(currentPage - 1)}>Previous</a> : <span class="page-disabled">Previous</span>}
+        <span>Page {currentPage} of {totalPages}</span>
+        {currentPage < totalPages ? <a href={makePageHref(currentPage + 1)}>Next</a> : <span class="page-disabled">Next</span>}
+      </nav>}
 
     </section>
   </main>
@@ -147,6 +165,11 @@ const filteredRecipes = recipes.filter((recipe) =>
     color: var(--ds-teal);
     font-weight: 600;
   }
+
+  .pagination { display: flex; justify-content: center; align-items: center; gap: 18px; margin-top: 40px; }
+  .pagination a, .pagination .page-disabled { padding: 10px 16px; border: 1px solid var(--ds-teal); border-radius: var(--ds-radius-sm); color: var(--ds-teal); font-weight: 600; text-decoration: none; }
+  .pagination a:hover { background: var(--ds-teal); color: white; }
+  .pagination .page-disabled { opacity: .45; }
 
   @media (max-width: 991px) {
     .recipes-grid {

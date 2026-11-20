@@ -78,6 +78,26 @@ const liveRecipes = userRecipes
 const pendingCount = userRecipes.filter(
   (recipe) => recipe.status === 'pending'
 ).length;
+const pendingRecipes = userRecipes
+  .filter((recipe) => recipe.status === 'pending')
+  .sort((a, b) => b.created_at.localeCompare(a.created_at));
+const recipeUpdated = Astro.url.searchParams.get('updated') === '1';
+
+const { data: savedRows, error: savedRowsError } = await supabase.from('saved_recipes')
+  .select('recipe_id, saved_at').eq('user_id', user.id).order('saved_at', { ascending: false });
+if (savedRowsError) console.error('Dashboard saved recipes query failed:', savedRowsError);
+const savedOrder = new Map((savedRows ?? []).map((row) => [row.recipe_id, row.saved_at]));
+const savedIds = [...savedOrder.keys()];
+let savedRecipes: Recipe[] = [];
+if (savedIds.length) {
+  const { data: savedRecipeRows, error: savedRecipeError } = await supabase.from('recipes')
+    .select('*').in('id', savedIds).eq('status', 'live');
+  if (savedRecipeError) console.error('Could not load saved recipes:', savedRecipeError);
+  savedRecipes = ((savedRecipeRows ?? []) as Recipe[]).sort((a, b) =>
+    (savedOrder.get(b.id) ?? '').localeCompare(savedOrder.get(a.id) ?? '')
+  );
+}
+const savedNotice = Astro.url.searchParams.get('saved');
 
 // ---- Display name (same fallback chain as submit-recipe.astro) ----------
 const displayName =
@@ -122,6 +142,10 @@ const displayName =
           </div>
         </div>
       </section>
+
+      {recipeUpdated && <p class="dash-updated" role="status"><i class="bi bi-check-circle"></i> Recipe changes saved.</p>}
+      {savedNotice === '1' && <p class="dash-updated" role="status"><i class="bi bi-bookmark-check"></i> Recipe added to your saved list.</p>}
+      {savedNotice === '0' && <p class="dash-updated" role="status"><i class="bi bi-bookmark"></i> Recipe removed from your saved list.</p>}
 
       <!-- ===================== Stats band ===================== -->
       <section class="ds-container dash-stats">
@@ -169,24 +193,13 @@ const displayName =
                   href={`/recipes/${recipe.slug}/`}
                 />
 
-                <!-- Sibling of the card, NOT inside it: the card is an <a>,
-                     and a button inside a link is invalid HTML. -->
-                <form
-                  method="POST"
-                  action="/api/delete-recipe"
-                  class="dash-card__delete"
-                  data-confirm={`Delete "${recipe.title}"? This can't be undone.`}
-                >
-                  <input type="hidden" name="id" value={recipe.id} />
-                  <button
-                    type="submit"
-                    class="dash-delete-btn"
-                    aria-label={`Delete ${recipe.title}`}
-                    title="Delete recipe"
-                  >
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </form>
+                <div class="recipe-actions">
+                  <a href={`/dashboard/edit/${recipe.id}`} class="recipe-action recipe-action--edit"><i class="bi bi-pencil-square" aria-hidden="true"></i> Edit recipe</a>
+                  <form method="POST" action="/api/delete-recipe" data-confirm={`Delete "${recipe.title}"? This can't be undone.`}>
+                    <input type="hidden" name="id" value={recipe.id} />
+                    <button type="submit" class="recipe-action recipe-action--delete"><i class="bi bi-trash" aria-hidden="true"></i> Delete</button>
+                  </form>
+                </div>
               </div>
             ))}
           </div>
@@ -203,6 +216,46 @@ const displayName =
             </p>
           </div>
         )}
+      </section>
+
+      {pendingRecipes.length > 0 && <section class="ds-container pending-section">
+        <div class="dash-grid-heading">
+          <h2>Your pending recipes</h2>
+          <p>These are waiting for review. You can keep editing them while they’re pending.</p>
+        </div>
+        <div class="pending-list">
+          {pendingRecipes.map((recipe) => <article class="pending-item">
+            <div><h3>{recipe.title}</h3><p>Submitted {new Date(recipe.created_at).toLocaleDateString()}</p></div>
+            <div class="recipe-actions">
+              <a href={`/dashboard/edit/${recipe.id}`} class="recipe-action recipe-action--edit"><i class="bi bi-pencil-square" aria-hidden="true"></i> Edit recipe</a>
+              <form method="POST" action="/api/delete-recipe" data-confirm={`Delete "${recipe.title}"? This can't be undone.`}>
+                <input type="hidden" name="id" value={recipe.id} />
+                <button type="submit" class="recipe-action recipe-action--delete"><i class="bi bi-trash" aria-hidden="true"></i> Delete</button>
+              </form>
+            </div>
+          </article>)}
+        </div>
+      </section>}
+
+      <section class="ds-container saved-section">
+        <div class="dash-grid-heading">
+          <h2>Your saved recipes</h2>
+          <p>{savedRecipes.length} {savedRecipes.length === 1 ? 'recipe saved' : 'recipes saved for later'}</p>
+        </div>
+        {savedRecipes.length ? <div class="dash-grid">
+          {savedRecipes.map((recipe) => <div class="dash-card saved-card">
+            <RecipeCard recipe={recipe} href={`/recipes/${recipe.slug}/`} />
+            <form method="POST" action="/api/saved-recipes">
+              <input type="hidden" name="recipe_id" value={recipe.id} />
+              <input type="hidden" name="action" value="remove" />
+              <input type="hidden" name="destination" value="dashboard" />
+              <button type="submit" class="recipe-action recipe-action--delete"><i class="bi bi-bookmark-x" aria-hidden="true"></i> Remove saved recipe</button>
+            </form>
+          </div>)}
+        </div> : <div class="saved-empty">
+          <p>Save a recipe to keep it handy for later.</p>
+          <a href="/recipes/" class="dash-btn dash-btn--outline">Browse recipes</a>
+        </div>}
       </section>
   </main>
 
@@ -420,38 +473,33 @@ const displayName =
     gap: 25px;
   }
 
-  /* ---------- Delete button (floats over the card's top-right corner) ---------- */
+  /* ---------- Recipe actions ---------- */
   .dash-card {
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
-  .dash-card__delete {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    z-index: 2;
-    margin: 0;
-  }
+  .recipe-actions { display: flex; align-items: center; gap: 10px; width: 100%; }
+  .recipe-actions > a, .recipe-actions > form { flex: 1; }
+  .recipe-actions form { display: flex; margin: 0; }
+  .recipe-action { width: 100%; min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 12px; border: 1px solid transparent; border-radius: var(--ds-radius-sm); font: inherit; font-size: .9rem; font-weight: 600; line-height: 1; text-decoration: none; cursor: pointer; }
+  .recipe-action--edit { background: var(--ds-teal); color: white; }
+  .recipe-action--edit:hover, .recipe-action--edit:focus-visible { background: #315f68; color: white; }
+  .recipe-action--delete { border-color: #d8a5a0; background: white; color: #9c302a; }
+  .recipe-action--delete:hover, .recipe-action--delete:focus-visible { border-color: #9c302a; background: #fff3f2; color: #852720; }
 
-  .dash-delete-btn {
-    width: 38px;
-    height: 38px;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255, 255, 255, 0.95);
-    color: var(--ds-muted);
-    box-shadow: 0 2px 8px rgba(44, 42, 40, 0.2);
-    cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
-  }
-
-  .dash-delete-btn:hover,
-  .dash-delete-btn:focus-visible {
-    background: #b3261e;
-    color: #fff;
-  }
+  .pending-section { padding-bottom: 70px; }
+  .saved-section { padding-bottom: 80px; }
+  .saved-card > form { margin: 0; }
+  .saved-empty { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px; border: 1px dashed var(--ds-border); border-radius: var(--ds-radius-md); background: var(--ds-cream); }
+  .saved-empty p { margin: 0; color: var(--ds-muted); }
+  .pending-list { display: grid; gap: 10px; }
+  .pending-item { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 18px 20px; background: white; border: 1px solid var(--ds-border); border-radius: var(--ds-radius-md); }
+  .pending-item h3 { margin: 0 0 4px; color: var(--ds-dark); font: 700 1.15rem var(--ds-heading-font); }
+  .pending-item p { margin: 0; color: var(--ds-muted); font-size: .88rem; }
+  .pending-item .recipe-actions { width: auto; min-width: 220px; }
+  .dash-updated { width: min(1100px, calc(100% - 40px)); margin: 20px auto 0; padding: 14px 18px; color: #276243; background: #e3f4e9; border-radius: var(--ds-radius-sm); }
 
   /* ---------- Empty state ---------- */
   .dash-empty {
@@ -508,5 +556,9 @@ const displayName =
       grid-template-columns: 1fr;
       gap: 18px;
     }
+
+    .pending-item { align-items: flex-start; flex-direction: column; }
+    .pending-item .recipe-actions { width: 100%; }
+    .saved-empty { align-items: flex-start; flex-direction: column; }
   }
 </style>

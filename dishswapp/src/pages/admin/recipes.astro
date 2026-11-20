@@ -1,0 +1,199 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import { isAdminUser } from '../../lib/admin';
+import { supabase, type Recipe } from '../../lib/supabase';
+
+const { isAuthenticated } = Astro.locals.auth();
+if (!isAuthenticated) return Astro.redirect('/login');
+
+const user = await Astro.locals.currentUser();
+if (!isAdminUser(user?.id)) return new Response('Not found', { status: 404 });
+
+const months = [
+  { value: 1, label: 'January' }, { value: 2, label: 'February' },
+  { value: 3, label: 'March' }, { value: 4, label: 'April' },
+  { value: 5, label: 'May' }, { value: 6, label: 'June' },
+  { value: 7, label: 'July' }, { value: 8, label: 'August' },
+  { value: 9, label: 'September' }, { value: 10, label: 'October' },
+  { value: 11, label: 'November' }, { value: 12, label: 'December' },
+];
+
+const pageSize = 20;
+const searchTerm = (Astro.url.searchParams.get('q') ?? '').slice(0, 100).trim();
+const requestedStatus = Astro.url.searchParams.get('status') ?? '';
+const selectedStatus = (['pending', 'live'] as const).find((value) => value === requestedStatus) ?? '';
+const requestedPage = Math.max(1, Number.parseInt(Astro.url.searchParams.get('page') ?? '1', 10) || 1);
+const safeSearch = searchTerm.replace(/[^a-z0-9 -]/gi, ' ').replace(/\s+/g, ' ').trim();
+let query = supabase.from('recipes').select('*', { count: 'exact' }).order('created_at', { ascending: false });
+if (safeSearch) query = query.or(`title.ilike.%${safeSearch}%,author.ilike.%${safeSearch}%,slug.ilike.%${safeSearch}%`);
+if (selectedStatus) query = query.eq('status', selectedStatus);
+const { data, error, count } = await query.range((requestedPage - 1) * pageSize, requestedPage * pageSize - 1);
+if (error) console.error('Admin recipe list failed:', error);
+const recipes = (data ?? []) as Recipe[];
+const totalRecipes = count ?? 0;
+const totalPages = Math.max(1, Math.ceil(totalRecipes / pageSize));
+const currentPage = Math.min(requestedPage, totalPages);
+if (requestedPage > totalPages) {
+  const redirectUrl = new URL(Astro.url);
+  redirectUrl.searchParams.set('page', String(totalPages));
+  return Astro.redirect(`${redirectUrl.pathname}${redirectUrl.search}`);
+}
+const makePageHref = (page: number) => {
+  const url = new URL(Astro.url);
+  url.searchParams.set('page', String(page));
+  return `${url.pathname}${url.search}`;
+};
+---
+
+<Layout title="Recipe review | DishSwapp" description="Review and manage DishSwapp recipes." noindex>
+  <Navbar />
+  <main class="admin-page">
+    <header class="admin-header">
+      <div class="ds-container">
+        <p class="ds-eyebrow">DISH SWAPP ADMIN</p>
+        <h1>Recipe review</h1>
+        <p>Review submissions, edit recipe details, and control what is published.</p>
+        <div class="admin-count">{totalRecipes} {totalRecipes === 1 ? 'recipe' : 'recipes'}</div>
+      </div>
+    </header>
+    <section class="ds-container admin-list" aria-label="All recipes">
+      {error && <p class="admin-error">Recipes could not be loaded. Please refresh the page.</p>}
+      <form class="queue-controls" method="get" action="/admin/recipes">
+        <input type="hidden" name="page" value="1" />
+        <label>Search recipes<input name="q" type="search" value={searchTerm} maxlength="100" placeholder="Title, author or slug" /></label>
+        <label>Status<select name="status"><option value="" selected={!selectedStatus}>All statuses</option><option value="pending" selected={selectedStatus === 'pending'}>Pending</option><option value="live" selected={selectedStatus === 'live'}>Live</option></select></label>
+        <div class="admin-filter-actions"><button type="submit">Apply</button><a href="/admin/recipes">Clear</a></div>
+      </form>
+      <div id="admin-recipe-list">
+      {recipes.map((recipe) => (
+        <article class="admin-recipe" data-recipe-card data-status={recipe.status} data-search={`${recipe.title} ${recipe.author ?? ''} ${recipe.slug}`.toLowerCase()}>
+          <div class="recipe-summary">
+            <div><h2>{recipe.title}</h2><p>/{recipe.slug} · Submitted by {recipe.author || 'DishSwapp member'} · {new Date(recipe.created_at).toLocaleDateString()}</p></div>
+            <span class:list={['status-badge', recipe.status === 'live' ? 'status-live' : 'status-pending']}>{recipe.status}</span>
+          </div>
+          <details class="recipe-editor">
+            <summary>Edit recipe</summary>
+            <form data-recipe-form>
+              <input type="hidden" name="id" value={recipe.id} />
+              <div class="admin-fields">
+            <label>Title<input name="title" value={recipe.title} maxlength="100" required /></label>
+            <label>Author<input name="author" value={recipe.author ?? ''} /></label>
+            <label class="wide">Description<textarea name="description" rows="2">{recipe.description ?? ''}</textarea></label>
+            <label>Tags (comma separated)<input name="tags" value={(recipe.tags ?? []).join(', ')} /></label>
+            <label>Difficulty<select name="difficulty"><option value="none" selected={recipe.difficulty === 'none'}>Not specified</option><option value="easy" selected={recipe.difficulty === 'easy'}>Easy</option><option value="intermediate" selected={recipe.difficulty === 'intermediate'}>Intermediate</option><option value="hard" selected={recipe.difficulty === 'hard'}>Hard</option></select></label>
+            <label>Recipe of the month<select name="featured_month"><option value="" selected={!recipe.featured_month}>Not featured</option>{months.map((month) => <option value={month.value} selected={recipe.featured_month === month.value}>{month.label}</option>)}</select><small>Assign a month to feature this live recipe on the homepage.</small></label>
+            <label>Ingredients (one per line)<textarea name="ingredients" rows="6" required>{(recipe.ingredients ?? []).join('\n')}</textarea></label>
+            <label>Instructions (one per line)<textarea name="instructions" rows="6" required>{(recipe.instructions ?? []).join('\n')}</textarea></label>
+            <label>Prep minutes<input name="prep_time" type="number" min="1" max="10000" value={recipe.prep_time ?? ''} /></label>
+            <label>Cook minutes<input name="cook_time" type="number" min="1" max="10000" value={recipe.cook_time ?? ''} /></label>
+            <label>Servings<input name="servings" type="number" min="1" max="10000" value={recipe.servings ?? ''} /></label>
+            <label class="wide">Notes<textarea name="notes" rows="3">{recipe.notes ?? ''}</textarea></label>
+              </div>
+              {recipe.image_url && <p class="image-link"><a href={recipe.image_url} target="_blank" rel="noreferrer">View current recipe image</a> <span>Image replacement isn’t included in this editor.</span></p>}
+              <div class="save-row"><span class="save-message" aria-live="polite"></span><button type="submit">Save changes</button></div>
+            </form>
+          </details>
+        </article>
+      ))}
+      </div>
+      {totalPages > 1 && <nav class="queue-pagination" aria-label="Recipe review pages">
+        {currentPage > 1 ? <a href={makePageHref(currentPage - 1)}>Previous</a> : <span class="page-disabled">Previous</span>}
+        <span>Page {currentPage} of {totalPages}</span>
+        {currentPage < totalPages ? <a href={makePageHref(currentPage + 1)}>Next</a> : <span class="page-disabled">Next</span>}
+      </nav>}
+      {!recipes.length && !error && <p>{searchTerm || selectedStatus ? 'No recipes match those filters.' : 'No recipes have been submitted yet.'}</p>}
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-recipe-form]').forEach((form) => {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      const message = form.querySelector<HTMLElement>('.save-message');
+      if (!button || !message) return;
+      button.disabled = true;
+      message.textContent = 'Saving…';
+      const payload = Object.fromEntries(new FormData(form).entries());
+      try {
+        const response = await fetch('/api/admin/recipes', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({}));
+          throw new Error(result.error || 'Could not save changes.');
+        }
+        message.textContent = 'Saved.';
+        const card = form.closest<HTMLElement>('[data-recipe-card]');
+        if (card) {
+          const title = String(payload.title ?? '');
+          const author = String(payload.author ?? '');
+          const status = String(payload.status ?? 'pending');
+          card.dataset.status = status;
+          card.dataset.search = `${title} ${author} ${card.querySelector('.recipe-summary p')?.textContent ?? ''}`.toLowerCase();
+          const heading = card.querySelector('.recipe-summary h2');
+          if (heading) heading.textContent = title;
+          const badge = card.querySelector<HTMLElement>('.status-badge');
+          if (badge) {
+            badge.textContent = status;
+            badge.className = `status-badge ${status === 'live' ? 'status-live' : 'status-pending'}`;
+          }
+          const filteredStatus = new URLSearchParams(window.location.search).get('status');
+          if (filteredStatus && filteredStatus !== status) {
+            window.location.reload();
+          }
+        }
+      } catch (error) {
+        message.textContent = error instanceof Error ? error.message : 'Could not save changes.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+</script>
+
+<style>
+  .admin-page { min-height: 60vh; background: var(--ds-cream); }
+  .admin-header { padding: 55px 0 35px; background: white; }
+  .admin-header h1 { margin: 8px 0; font-family: var(--ds-heading-font); color: var(--ds-dark); }
+  .admin-header p:not(.ds-eyebrow) { color: var(--ds-muted); margin-bottom: 10px; }
+  .admin-count { color: var(--ds-teal); font-weight: 700; }
+  .admin-list { padding-top: 30px; padding-bottom: 70px; }
+  .queue-controls { display: grid; grid-template-columns: minmax(220px, 2fr) minmax(170px, 1fr) auto; gap: 16px; align-items: end; padding: 18px; margin-bottom: 20px; background: white; border: 1px solid var(--ds-border); border-radius: var(--ds-radius-md); }
+  .queue-controls label { display: grid; gap: 6px; font-size: .88rem; font-weight: 600; }
+  .queue-controls input, .queue-controls select { min-height: 42px; padding: 8px 10px; border: 1px solid var(--ds-border); border-radius: var(--ds-radius-sm); font: inherit; background: white; }
+  .admin-filter-actions { display: flex; align-items: center; gap: 12px; }
+  .admin-filter-actions button, .admin-filter-actions a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 8px 14px; border: 1px solid var(--ds-teal); border-radius: var(--ds-radius-sm); background: white; color: var(--ds-teal); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
+  .admin-filter-actions button:hover { background: var(--ds-teal); color: white; }
+  #admin-recipe-list { display: grid; gap: 12px; }
+  .admin-recipe { background: white; border: 1px solid var(--ds-border); border-radius: var(--ds-radius-md); padding: 20px 24px; }
+  .recipe-summary { display: flex; justify-content: space-between; gap: 20px; align-items: center; }
+  .recipe-summary h2 { font: 700 1.2rem var(--ds-heading-font); margin: 0 0 5px; }
+  .recipe-summary p, .image-link { color: var(--ds-muted); font-size: .88rem; margin: 0; }
+  .status-badge { flex: none; padding: 5px 10px; border-radius: 999px; font-size: .78rem; font-weight: 700; text-transform: capitalize; }
+  .status-pending { color: #81520c; background: #fff1d6; }
+  .status-live { color: #276243; background: #e3f4e9; }
+  .recipe-editor { margin-top: 14px; }
+  .recipe-editor summary { width: fit-content; color: var(--ds-teal); font-weight: 700; cursor: pointer; }
+  .recipe-editor[open] summary { margin-bottom: 18px; }
+  .admin-recipe[hidden] { display: none; }
+  .queue-pagination { display: flex; justify-content: center; align-items: center; gap: 18px; padding: 24px 0 4px; }
+  .queue-pagination a, .queue-pagination .page-disabled { border: 1px solid var(--ds-teal); border-radius: var(--ds-radius-sm); background: white; color: var(--ds-teal); padding: 9px 15px; font-weight: 600; text-decoration: none; }
+  .queue-pagination a:hover { background: var(--ds-teal); color: white; }
+  .queue-pagination .page-disabled { opacity: .45; }
+  .admin-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .admin-fields label, .status-control { display: grid; gap: 6px; font-size: .88rem; font-weight: 600; }
+  .admin-fields .wide { grid-column: 1 / -1; }
+  .admin-fields input, .admin-fields textarea, .admin-fields select, .status-control select { width: 100%; border: 1px solid var(--ds-border); border-radius: var(--ds-radius-sm); padding: 10px; font: inherit; background: white; color: var(--ds-dark); }
+  .image-link { margin-top: 15px; } .image-link span { margin-left: 8px; }
+  .save-row { display: flex; justify-content: end; align-items: center; gap: 14px; margin-top: 20px; }
+  .save-message { color: var(--ds-teal); font-size: .9rem; }
+  .save-row button { background: var(--ds-spice); border: 0; border-radius: var(--ds-radius-sm); padding: 11px 18px; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+  .save-row button:disabled { opacity: .6; cursor: wait; }
+  .admin-error { color: #a32626; }
+  @media (max-width: 700px) { .admin-fields { grid-template-columns: 1fr; } .admin-fields .wide { grid-column: auto; } .queue-controls { grid-template-columns: 1fr; } .recipe-summary { align-items: start; } }
+</style>

@@ -24,12 +24,15 @@ Most recipe sites are a one-way street: you read, you cook, and if the recipe do
 
 ## Features
 
-- **Browse recipes** from the community, with a page for each recipe (ingredients, steps, timings, servings, difficulty, notes and a photo)
+- **Browse recipes** from the community with database-side search, filters and pagination, plus a page for each recipe (ingredients, steps, timings, servings, difficulty, notes and a photo)
 - **Explore by cuisine** (Italian, Mexican, Asian and more) using recipe tags
 - **Share your own recipe** with a photo upload (JPG, PNG or WebP, up to 5 MB)
 - **Personal dashboard** showing your live recipes, a count of those awaiting review, and a delete button for each recipe you own
+- **Saved recipes**: signed-in members can save live recipes from their recipe pages and find them on their dashboard
+- **Recipe editing** from your dashboard for both pending and live recipes, with server-side ownership checks
 - **Sign in with Clerk** so every recipe is tied to its author
 - **Review before publishing**: new submissions start as `pending` and only appear on the site once set to `live`
+- **Recipe of the month**: admins can assign one live recipe to each recurring month; the current month's recipe appears on the homepage
 - **Share-ready pages**: every page has its own title, description and Open Graph / Twitter card, and recipe pages include `schema.org` Recipe data for search engines
 - **Blog posts** written in Markdoc through the Keystatic editor
 
@@ -73,6 +76,9 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 # Clerk (Dashboard → API Keys)
 PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
+
+# Admins (comma-separated Clerk user IDs)
+CLERK_ADMIN_USER_IDS=user_...
 ```
 
 > **Keep `SUPABASE_SERVICE_ROLE_KEY` secret.** It bypasses Row Level Security, so it must only ever be used on the server (API routes and `.astro` frontmatter). `.env` is already in `.gitignore`; never commit it.
@@ -101,14 +107,35 @@ create table public.recipes (
   cook_time    integer,
   servings     integer,
   notes        text,
+  featured_month smallint check (featured_month between 1 and 12),
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now()
 );
+
+-- Only one recipe can be featured for each month (NULL means not featured).
+create unique index recipes_one_feature_per_month_idx
+  on public.recipes (featured_month)
+  where featured_month is not null;
+
+create table public.saved_recipes (
+  user_id   text not null, -- Clerk user ID
+  recipe_id uuid not null references public.recipes(id) on delete cascade,
+  saved_at  timestamptz not null default now(),
+  primary key (user_id, recipe_id)
+);
+
+create index saved_recipes_user_saved_at_idx
+  on public.saved_recipes (user_id, saved_at desc);
+alter table public.saved_recipes enable row level security;
 
 -- All access goes through the server using the service-role key,
 -- so lock the table down for everyone else.
 alter table public.recipes enable row level security;
 ```
+
+For an existing Supabase database, run [`supabase/migrations/20261120_add_recipe_of_the_month.sql`](supabase/migrations/20261120_add_recipe_of_the_month.sql) in the SQL editor before using the homepage feature. The month assignment repeats every year; leave it empty to remove a recipe from the feature.
+
+For saved recipes on an existing database, also run [`supabase/migrations/20261120_create_saved_recipes.sql`](supabase/migrations/20261120_create_saved_recipes.sql) in the SQL editor. Saved entries are tied to Clerk user IDs, unique per user and recipe, and are removed automatically if the recipe is deleted.
 
 Then go to **Storage** and create a **public** bucket named `recipe-images`.
 
@@ -131,6 +158,10 @@ Submissions are saved with `status = 'pending'`. To approve one, open the `recip
 
 A built-in admin review screen is a good first contribution if you'd like to help.
 
+### Admin recipe review
+
+Add one or more Clerk user IDs to `CLERK_ADMIN_USER_IDS` as a comma-separated server environment variable. Admins can then open `/admin/recipes` to edit recipe details, switch each recipe between `pending` and `live`, and assign a live recipe to a recurring month. Both the page and its save endpoint enforce the allow-list on the server. The editor currently links to the existing image; image replacement is not part of the admin editor yet.
+
 ## Project structure
 
 ```
@@ -149,6 +180,8 @@ dishswapp/
 │   │   ├── about.astro, donate.astro
 │   │   ├── login.astro               # Clerk sign-in / sign-up
 │   │   ├── dashboard.astro           # Your recipes (signed-in only)
+│   │   ├── dashboard/edit/[id].astro # Edit a recipe you own
+│   │   ├── admin/recipes.astro       # Admin recipe review and editing
 │   │   ├── submit-recipe.astro       # Recipe form
 │   │   ├── recipe-submitted.astro
 │   │   ├── recipes/index.astro       # All live recipes
@@ -157,7 +190,10 @@ dishswapp/
 │   │   ├── posts/[slug].astro        # Blog post
 │   │   └── api/
 │   │       ├── recipes.ts            # POST: submit a recipe
+│   │       ├── update-recipe.ts      # POST: edit a recipe you own
+│   │       ├── saved-recipes.ts      # POST: save or remove a recipe
 │   │       ├── delete-recipe.ts      # POST: delete your own recipe
+│   │       └── admin/recipes.ts      # POST: admin edit and publish status
 │   │       └── health-supabase.ts    # GET: connectivity check
 │   └── styles.css           # Brand tokens (--ds-*) and global styles
 ├── astro.config.mjs
@@ -187,7 +223,7 @@ Logos and icons live in `public/img/`. The SVG wordmarks use Playfair Display, w
 The project is set up for [Vercel](https://vercel.com):
 
 1. Import the repository and set the **Root Directory** to `dishswapp`.
-2. Add the four environment variables from step 2 under **Project Settings → Environment Variables**.
+2. Add the environment variables from step 2 under **Project Settings → Environment Variables**. Set `CLERK_ADMIN_USER_IDS` to the Clerk user ID(s) of the people who should manage recipes.
 3. Deploy.
 
 Once you have a domain, add `site: 'https://your-domain.com'` to `astro.config.mjs` so canonical and share-card URLs use it.

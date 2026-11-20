@@ -36,6 +36,7 @@ export type Recipe = {
   cook_time: number | null;
   servings: number | null;
   notes: string | null;
+  featured_month: number | null;
   created_at: string;
   updated_at: string;
 };

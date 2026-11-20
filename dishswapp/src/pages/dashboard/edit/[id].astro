@@ -1,0 +1,100 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Navbar from '../../../components/Navbar.astro';
+import Footer from '../../../components/Footer.astro';
+import { supabase, type Recipe } from '../../../lib/supabase';
+
+const { isAuthenticated } = Astro.locals.auth();
+if (!isAuthenticated) return Astro.redirect('/login');
+const user = await Astro.locals.currentUser();
+if (!user) return Astro.redirect('/login');
+
+const id = Astro.params.id ?? '';
+const { data, error } = await supabase.from('recipes').select('*').eq('id', id).eq('submitted_by', user.id).maybeSingle();
+if (error) {
+  console.error('Could not load recipe for editing:', error);
+  return new Response('Could not load this recipe right now.', { status: 502 });
+}
+if (!data) return new Response('Recipe not found', { status: 404 });
+const recipe = data as Recipe;
+---
+
+<Layout title={`Edit ${recipe.title} | DishSwapp`} description="Edit a recipe in your DishSwapp kitchen." noindex>
+  <Navbar />
+  <main class="edit-page">
+    <div class="edit-container">
+      <a class="back-link" href="/dashboard"><i class="bi bi-arrow-left"></i> Back to your dashboard</a>
+      <header class="edit-heading">
+        <p class="ds-eyebrow">YOUR DISHSWAPP KITCHEN</p>
+        <h1>Edit your recipe</h1>
+        <p>Update the details below and save your changes. Its current review status will stay the same.</p>
+      </header>
+
+      <form class="edit-form" action="/api/update-recipe" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="id" value={recipe.id} />
+
+        <section class="form-section">
+          <h2>Recipe details</h2>
+          <label>Title *<input name="title" value={recipe.title} maxlength="100" required /></label>
+          <p class="field-note">The recipe URL stays the same when you change its title.</p>
+          <label>Short description<textarea name="description" rows="3" maxlength="2000">{recipe.description ?? ''}</textarea></label>
+          <div class="form-row">
+            <label>Cuisine / Tags<input name="tags" value={(recipe.tags ?? []).join(', ')} /><small>Separate tags with commas.</small></label>
+            <label>Difficulty<select name="difficulty">
+              <option value="none" selected={recipe.difficulty === 'none'}>Not specified</option>
+              <option value="easy" selected={recipe.difficulty === 'easy'}>Easy</option>
+              <option value="intermediate" selected={recipe.difficulty === 'intermediate'}>Intermediate</option>
+              <option value="hard" selected={recipe.difficulty === 'hard'}>Hard</option>
+            </select></label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>Ingredients and instructions</h2>
+          <label>Ingredients *<textarea name="ingredients" rows="7" required>{(recipe.ingredients ?? []).join('\n')}</textarea><small>Enter each ingredient on a separate line.</small></label>
+          <label>Instructions *<textarea name="instructions" rows="8" required>{(recipe.instructions ?? []).join('\n')}</textarea><small>Enter each cooking step on a separate line.</small></label>
+        </section>
+
+        <section class="form-section">
+          <h2>Additional information</h2>
+          <div class="form-row three-columns">
+            <label>Prep time (minutes)<input type="number" name="prepTime" min="1" max="10000" value={recipe.prep_time ?? ''} /></label>
+            <label>Cook time (minutes)<input type="number" name="cookTime" min="1" max="10000" value={recipe.cook_time ?? ''} /></label>
+            <label>Servings<input type="number" name="servings" min="1" max="10000" value={recipe.servings ?? ''} /></label>
+          </div>
+          <label>Additional notes<textarea name="notes" rows="3" maxlength="3000">{recipe.notes ?? ''}</textarea></label>
+          <label>Replace recipe image<input type="file" name="image" accept="image/jpeg,image/png,image/webp" /><small>Optional. JPG, PNG or WebP, up to 5 MB.</small></label>
+          {recipe.image_url && <div class="current-image"><img src={recipe.image_url} alt={`Current image for ${recipe.title}`} /><span>Current image. Leave the upload empty to keep it.</span></div>}
+        </section>
+
+        <div class="form-actions"><a href="/dashboard">Cancel</a><button type="submit">Save changes</button></div>
+      </form>
+    </div>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .edit-page { min-height: 65vh; padding: 42px 20px 80px; background: var(--ds-cream); }
+  .edit-container { width: min(900px, 100%); margin: 0 auto; }
+  .back-link { display: inline-flex; gap: 8px; align-items: center; margin-bottom: 28px; color: var(--ds-teal); font-weight: 600; text-decoration: none; }
+  .edit-heading { margin-bottom: 28px; }
+  .edit-heading h1 { margin: 8px 0; color: var(--ds-dark); font: 700 clamp(2rem, 4vw, 3rem) var(--ds-heading-font); }
+  .edit-heading p:last-child { margin: 0; color: var(--ds-muted); line-height: 1.6; }
+  .edit-form { display: grid; gap: 18px; }
+  .form-section { display: grid; gap: 17px; padding: 24px; background: white; border: 1px solid var(--ds-border); border-radius: var(--ds-radius-md); }
+  .form-section h2 { margin: 0; color: var(--ds-dark); font: 700 1.35rem var(--ds-heading-font); }
+  .form-section label { display: grid; gap: 7px; color: var(--ds-dark); font-size: .92rem; font-weight: 600; }
+  .form-section input, .form-section textarea, .form-section select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--ds-border); border-radius: var(--ds-radius-sm); background: white; color: var(--ds-dark); font: inherit; font-weight: 400; }
+  .form-section textarea { resize: vertical; }
+  .form-section small, .field-note { color: var(--ds-muted); font-size: .84rem; font-weight: 400; }
+  .field-note { margin: -12px 0 0; }
+  .form-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .form-row.three-columns { grid-template-columns: repeat(3, 1fr); }
+  .current-image { display: flex; align-items: center; gap: 14px; color: var(--ds-muted); font-size: .88rem; }
+  .current-image img { width: 100px; height: 76px; object-fit: cover; border-radius: var(--ds-radius-sm); }
+  .form-actions { display: flex; justify-content: end; align-items: center; gap: 18px; }
+  .form-actions a { color: var(--ds-teal); font-weight: 600; text-decoration: none; }
+  .form-actions button { border: 0; border-radius: 999px; padding: 12px 22px; background: var(--ds-spice); color: white; font: inherit; font-weight: 700; cursor: pointer; }
+  @media (max-width: 650px) { .form-row, .form-row.three-columns { grid-template-columns: 1fr; } .edit-page { padding: 30px 15px 60px; } .form-section { padding: 18px; } }
+</style>

@@ -28,6 +28,17 @@ if (!recipe) {
   Astro.response.status = 404;
 }
 
+const { isAuthenticated } = Astro.locals.auth();
+const signedInUser = isAuthenticated ? await Astro.locals.currentUser() : null;
+let isSaved = false;
+if (recipe && signedInUser) {
+  const { data: savedRow, error: savedError } = await supabase.from('saved_recipes')
+    .select('recipe_id').eq('user_id', signedInUser.id).eq('recipe_id', recipe.id).maybeSingle();
+  if (savedError) console.error('Could not check saved recipe state:', savedError);
+  isSaved = Boolean(savedRow);
+}
+const savedNotice = Astro.url.searchParams.get('saved');
+
 // Map database columns (snake_case, null) to the names the template uses
 // (camelCase, undefined) so the markup below doesn't need to change.
 const title = recipe?.title ?? '';
@@ -195,6 +206,18 @@ const recipeJsonLd = recipe
     Share Recipe
   </button>
 </div>
+
+{signedInUser ? <form class="save-recipe-form" method="POST" action="/api/saved-recipes">
+  <input type="hidden" name="recipe_id" value={recipe.id} />
+  <input type="hidden" name="destination" value="recipe" />
+  <input type="hidden" name="action" value={isSaved ? 'remove' : 'save'} />
+  <button type="submit" class:list={['save-recipe-button', isSaved && 'is-saved']}>
+    <i class:list={['bi', isSaved ? 'bi-bookmark-check-fill' : 'bi-bookmark-plus']} aria-hidden="true"></i>
+    {isSaved ? 'Saved to your recipes' : 'Save recipe'}
+  </button>
+</form> : <a class="save-recipe-button" href="/login"><i class="bi bi-bookmark-plus" aria-hidden="true"></i> Sign in to save</a>}
+{savedNotice === '1' && <p class="saved-feedback" role="status">Recipe added to your saved list.</p>}
+{savedNotice === '0' && <p class="saved-feedback" role="status">Recipe removed from your saved list.</p>}
 
 <p id="share-status" class="share-status" aria-live="polite"></p>
 
@@ -588,6 +611,11 @@ const recipeJsonLd = recipe
   color: var(--ds-teal);
   font-size: 0.85rem;
 }
+
+.save-recipe-form { margin-top: 14px; }
+.save-recipe-button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; padding: 10px 18px; border: 1px solid var(--ds-teal); border-radius: var(--ds-radius-sm); background: white; color: var(--ds-teal); font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.save-recipe-button:hover, .save-recipe-button.is-saved { background: var(--ds-teal); color: white; }
+.saved-feedback { margin: 8px 0 0; color: #276243; font-size: .9rem; }
 
 @media print {
   .back-link,

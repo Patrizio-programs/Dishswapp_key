@@ -1,0 +1,38 @@
+---
+import { supabase, type Recipe } from '../lib/supabase';
+
+const currentMonth = new Date().getMonth() + 1;
+const { data, error } = await supabase
+  .from('recipes')
+  .select('*')
+  .eq('status', 'live')
+  .eq('featured_month', currentMonth)
+  .maybeSingle();
+
+if (error) console.error('Could not load recipe of the month:', error);
+const recipe = data as Recipe | null;
+const monthName = new Date(new Date().getFullYear(), currentMonth - 1, 1)
+  .toLocaleString('en', { month: 'long' });
+---
+
+{recipe && <section class="rotm-wrap" aria-label={`Recipe of the month: ${recipe.title}`}>
+  <div class="rotm-card">
+    <div>
+      <p class="rotm-eyebrow">Recipe of the month · {monthName}</p>
+      <h2>{recipe.title}</h2>
+      {recipe.description && <p class="rotm-description">{recipe.description}</p>}
+    </div>
+    <a href={`/recipes/${recipe.slug}/`} class="rotm-link">Read &amp; cook <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+  </div>
+</section>}
+
+<style>
+  .rotm-wrap { padding: 0 0 28px; }
+  .rotm-card { width: min(1100px, calc(100% - 40px)); min-height: 92px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 18px 20px; border-radius: 14px; background: #28545c; color: white; }
+  .rotm-eyebrow { margin: 0 0 5px; color: #f9b7a4; font: 500 .72rem 'JetBrains Mono', monospace; letter-spacing: .18em; text-transform: uppercase; }
+  .rotm-card h2 { margin: 0; color: white; font: 700 1.35rem 'Playfair Display', Georgia, serif; }
+  .rotm-description { margin: 5px 0 0; color: rgba(255,255,255,.82); font-size: .9rem; }
+  .rotm-link { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; background: #f9b7a4; color: #2c2a28; font-size: .86rem; font-weight: 700; text-decoration: none; }
+  .rotm-link:hover { background: white; color: #2c2a28; }
+  @media (max-width: 600px) { .rotm-card { align-items: flex-start; flex-direction: column; gap: 14px; } }
+</style>
