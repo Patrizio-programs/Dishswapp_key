@@ -191,6 +191,7 @@ const displayName =
                 <RecipeCard
                   recipe={recipe}
                   href={`/recipes/${recipe.slug}/`}
+                  compact
                 />
 
                 <div class="recipe-actions">
@@ -244,7 +245,7 @@ const displayName =
         </div>
         {savedRecipes.length ? <div class="dash-grid">
           {savedRecipes.map((recipe) => <div class="dash-card saved-card">
-            <RecipeCard recipe={recipe} href={`/recipes/${recipe.slug}/`} />
+            <RecipeCard recipe={recipe} href={`/recipes/${recipe.slug}/`} compact />
             <form method="POST" action="/api/saved-recipes">
               <input type="hidden" name="recipe_id" value={recipe.id} />
               <input type="hidden" name="action" value="remove" />

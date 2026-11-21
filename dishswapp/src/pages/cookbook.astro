@@ -1,0 +1,108 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import RecipeCard from '../components/RecipeCard.astro';
+import { supabase, type Recipe } from '../lib/supabase';
+
+const { isAuthenticated } = Astro.locals.auth();
+if (!isAuthenticated) return Astro.redirect('/login');
+const user = await Astro.locals.currentUser();
+if (!user) return Astro.redirect('/login');
+
+const { data: savedRows, error: savedError } = await supabase.from('saved_recipes')
+  .select('recipe_id, saved_at').eq('user_id', user.id).order('saved_at', { ascending: false });
+if (savedError) console.error('Could not load cookbook saved recipes:', savedError);
+const savedDates = new Map((savedRows ?? []).map((row) => [row.recipe_id, row.saved_at]));
+const savedIds = [...savedDates.keys()];
+let savedRecipes: Recipe[] = [];
+if (savedIds.length) {
+  const { data, error } = await supabase.from('recipes').select('*').in('id', savedIds).eq('status', 'live');
+  if (error) console.error('Could not load cookbook recipe details:', error);
+  savedRecipes = ((data ?? []) as Recipe[]).sort((a, b) =>
+    (savedDates.get(b.id) ?? '').localeCompare(savedDates.get(a.id) ?? '')
+  );
+}
+const { data: ownRows, error: ownError } = await supabase.from('recipes')
+  .select('*').eq('submitted_by', user.id).eq('status', 'live').order('created_at', { ascending: false });
+if (ownError) console.error('Could not load cookbook owner recipes:', ownError);
+const ownRecipes = (ownRows ?? []) as Recipe[];
+const savedNotice = Astro.url.searchParams.get('saved');
+---
+
+<Layout title="My Cookbook | DishSwapp" description="Your saved DishSwapp recipes." noindex>
+  <Navbar />
+  <main class="cookbook-page">
+    <header class="cookbook-header">
+      <div class="ds-container">
+        <p class="ds-eyebrow">YOUR COLLECTION</p>
+        <h1>My Cookbook</h1>
+        <p>Your saved recipes and the recipes you’ve shared.</p>
+      </div>
+    </header>
+    <section class="ds-container cookbook-content">
+      {savedNotice === '1' && <p class="cookbook-notice" role="status">Recipe added to your cookbook.</p>}
+      {savedNotice === '0' && <p class="cookbook-notice" role="status">Recipe removed from your cookbook.</p>}
+      <section class="cookbook-section" aria-labelledby="saved-heading">
+        <div class="cookbook-section-heading"><h2 id="saved-heading">Saved recipes</h2><span>{savedRecipes.length}</span></div>
+        {savedError ? <div class="cookbook-empty"><p>Your saved recipes couldn’t load. Please try again.</p></div>
+          : savedRecipes.length ? <div class="cookbook-grid">{savedRecipes.map((recipe) => <article class="cookbook-card">
+            <RecipeCard recipe={recipe} href={`/recipes/${recipe.slug}/`} compact />
+            <form method="POST" action="/api/saved-recipes">
+              <input type="hidden" name="recipe_id" value={recipe.id} />
+              <input type="hidden" name="action" value="remove" />
+              <input type="hidden" name="destination" value="cookbook" />
+              <button type="submit"><i class="bi bi-bookmark-x" aria-hidden="true"></i> Remove from cookbook</button>
+            </form>
+          </article>)}</div> : <div class="cookbook-empty">
+            <p>Save recipes while browsing and they’ll be collected here.</p>
+            <a href="/recipes/">Find recipes</a>
+          </div>}
+      </section>
+
+      <section class="cookbook-section" aria-labelledby="own-heading">
+        <div class="cookbook-section-heading"><h2 id="own-heading">Your recipes</h2><span>{ownRecipes.length}</span></div>
+        {ownError ? <div class="cookbook-empty"><p>Your recipes couldn’t load. Please try again.</p></div>
+          : ownRecipes.length ? <div class="cookbook-grid">{ownRecipes.map((recipe) => <article class="cookbook-card cookbook-own-card">
+            <span class:list={['recipe-status', recipe.status === 'live' ? 'recipe-status--live' : 'recipe-status--pending']}>
+              {recipe.status === 'live' ? 'Live' : 'Pending review'}
+            </span>
+            <RecipeCard recipe={recipe} href={recipe.status === 'live' ? `/recipes/${recipe.slug}/` : `/dashboard/edit/${recipe.id}`} compact />
+            <a class="own-edit-link" href={`/dashboard/edit/${recipe.id}`}><i class="bi bi-pencil-square" aria-hidden="true"></i> Edit recipe</a>
+          </article>)}</div> : <div class="cookbook-empty">
+            <p>Recipes you submit will appear here.</p>
+            <a href="/submit-recipe">Share a recipe</a>
+          </div>}
+      </section>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .cookbook-page { min-height: 65vh; }
+  .cookbook-header { padding: 48px 0 34px; background: var(--ds-cream); }
+  .cookbook-header h1 { margin: 6px 0 8px; color: var(--ds-dark); font: 700 clamp(2.1rem, 5vw, 3rem) var(--ds-heading-font); }
+  .cookbook-header p:last-child { margin: 0; color: var(--ds-muted); }
+  .cookbook-content { padding-top: 28px; padding-bottom: 70px; }
+  .cookbook-section + .cookbook-section { margin-top: 42px; }
+  .cookbook-section-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .cookbook-section-heading h2 { margin: 0; color: var(--ds-dark); font: 700 1.5rem var(--ds-heading-font); }
+  .cookbook-section-heading span { min-width: 28px; padding: 2px 9px; border-radius: 999px; background: #e8f0ee; color: var(--ds-teal); font-size: .8rem; font-weight: 700; text-align: center; }
+  .cookbook-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .cookbook-card { display: flex; flex-direction: column; gap: 10px; }
+  .cookbook-card form { margin: 0; }
+  .cookbook-card button { width: 100%; min-height: 42px; display: inline-flex; justify-content: center; align-items: center; gap: 8px; border: 1px solid var(--ds-border); border-radius: var(--ds-radius-sm); background: white; color: var(--ds-muted); font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer; }
+  .cookbook-card button:hover { border-color: #d8a5a0; background: #fff3f2; color: #9c302a; }
+  .cookbook-empty { min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 35px 20px; border: 1px dashed var(--ds-border); border-radius: var(--ds-radius-md); background: var(--ds-cream); text-align: center; }
+  .cookbook-empty p { margin: 0 0 16px; color: var(--ds-muted); }
+  .cookbook-empty a { padding: 10px 18px; border-radius: 999px; background: var(--ds-spice); color: white; font-weight: 700; }
+  .recipe-status { align-self: flex-start; padding: 4px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; }
+  .recipe-status--live { background: #e3f4e9; color: #276243; }
+  .recipe-status--pending { background: #fff1d6; color: #81520c; }
+  .own-edit-link { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 42px; border-radius: var(--ds-radius-sm); background: var(--ds-teal); color: white; font-size: .9rem; font-weight: 600; }
+  .own-edit-link:hover { background: #315f68; color: white; }
+  .cookbook-notice { padding: 12px 15px; border-radius: var(--ds-radius-sm); background: #e3f4e9; color: #276243; }
+  @media (max-width: 850px) { .cookbook-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 575px) { .cookbook-grid { grid-template-columns: 1fr; gap: 16px; } .cookbook-header { padding-top: 35px; } }
+</style>

@@ -28,7 +28,8 @@ Most recipe sites are a one-way street: you read, you cook, and if the recipe do
 - **Explore by cuisine** (Italian, Mexican, Asian and more) using recipe tags
 - **Share your own recipe** with a photo upload (JPG, PNG or WebP, up to 5 MB)
 - **Personal dashboard** showing your live recipes, a count of those awaiting review, and a delete button for each recipe you own
-- **Saved recipes**: signed-in members can save live recipes from their recipe pages and find them on their dashboard
+- **Saved recipes**: signed-in members can save live recipes from their recipe pages and find them in their Cookbook
+- **Mobile navigation**: phone layouts use Home, Search, Cookbook and Profile tabs; Cookbook shows saved and owned recipes, and Profile opens the dashboard
 - **Recipe editing** from your dashboard for both pending and live recipes, with server-side ownership checks
 - **Sign in with Clerk** so every recipe is tied to its author
 - **Review before publishing**: new submissions start as `pending` and only appear on the site once set to `live`
@@ -180,6 +181,7 @@ dishswapp/
 │   │   ├── about.astro, donate.astro
 │   │   ├── login.astro               # Clerk sign-in / sign-up
 │   │   ├── dashboard.astro           # Your recipes (signed-in only)
+│   │   ├── cookbook.astro            # Saved recipes (signed-in only)
 │   │   ├── dashboard/edit/[id].astro # Edit a recipe you own
 │   │   ├── admin/recipes.astro       # Admin recipe review and editing
 │   │   ├── submit-recipe.astro       # Recipe form

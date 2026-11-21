@@ -31,6 +31,7 @@ const cards = [
 
 <section class="container py-5">
   <div class="row g-4">
+    <div class="col-auto d-md-none cuisine-all"><a href="/recipes/">All</a></div>
     {cards.map((card) => (
       <div class="col-12 col-md-4">
         <a
@@ -65,5 +66,17 @@ const cards = [
      Bootstrap's grid + utilities do the heavy lifting; these are fallbacks. */
   .card-img-top {
     width: 100%;
+  }
+
+  @media (max-width: 767.98px) {
+    section.container.py-5 { padding: 12px 0 !important; }
+    .row.g-4 { display: flex; flex-wrap: nowrap; gap: 8px; margin: 0; overflow-x: auto; padding: 0 2px 5px; scrollbar-width: none; }
+    .row.g-4::-webkit-scrollbar { display: none; }
+    .row.g-4 > div { width: auto; flex: 0 0 auto; padding: 0; }
+    .row.g-4 .card { display: block; height: auto !important; border: 0 !important; border-radius: 999px !important; background: transparent; box-shadow: none !important; }
+    .card-img-top, .card-text { display: none !important; }
+    .row.g-4 .card-body { padding: 0 !important; }
+    .row.g-4 .card-title, .cuisine-all a { display: block; margin: 0 !important; padding: 7px 13px; border: 1px solid var(--ds-border); border-radius: 999px; background: white; color: var(--ds-teal); font: 600 .76rem var(--ds-body-font); }
+    .cuisine-all a { background: #fce6dd; color: #8c4939; }
   }
 </style>

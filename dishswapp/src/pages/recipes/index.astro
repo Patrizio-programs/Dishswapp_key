@@ -60,6 +60,11 @@ const makePageHref = (page: number) => {
     </section>
 
     <section class="ds-container recipes-section">
+      <nav class="mobile-cuisine-chips" aria-label="Popular recipe categories">
+        <a href="/recipes/" class:list={['cuisine-chip', !selectedCuisine && 'is-active']}>All</a>
+        {allTags.slice(0, 4).map((tag) => <a href={`/recipes/?cuisine=${encodeURIComponent(tag)}`} class:list={['cuisine-chip', selectedCuisine === tag && 'is-active']}>{tag}</a>)}
+        {allTags.length > 4 && <a href="#cuisine-filter" class="cuisine-chip more-chip">+{allTags.length - 4}</a>}
+      </nav>
       <div class="recipes-heading">
         <div><h2>All Recipes</h2><p aria-live="polite">{totalRecipes} {totalRecipes === 1 ? 'recipe' : 'recipes'} found</p></div>
       </div>
@@ -90,7 +95,7 @@ const makePageHref = (page: number) => {
       </form>
 
       {error ? <div class="empty-recipes"><h3>Recipes are temporarily unavailable</h3><p>Please try again in a moment.</p></div>
-        : recipes.length ? <div class="recipes-grid">{recipes.map((recipe) => <RecipeCard recipe={recipe} href={`/recipes/${recipe.slug}/`} />)}</div>
+        : recipes.length ? <div class="recipes-grid">{recipes.map((recipe) => <RecipeCard recipe={recipe} href={`/recipes/${recipe.slug}/`} compact />)}</div>
           : <div class="empty-recipes"><h3>{searchTerm || selectedCuisine || selectedDifficulty ? 'No matching recipes' : 'No recipes yet'}</h3><p>{searchTerm || selectedCuisine || selectedDifficulty ? 'Try different search terms or clear your filters.' : 'Check back soon for new recipes!'}</p></div>}
 
       {totalPages > 1 && <nav class="pagination" aria-label="Recipe pages">
@@ -122,6 +127,7 @@ const makePageHref = (page: number) => {
   .filter-actions button, .filter-actions a { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border: 1px solid var(--ds-teal); border-radius: var(--ds-radius-sm); background: transparent; color: var(--ds-teal); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
   .filter-actions button:hover { background: var(--ds-teal); color: white; }
   .recipes-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 25px; }
+  .mobile-cuisine-chips { display: none; }
   .empty-recipes { text-align: center; padding: 60px 20px; background: var(--ds-cream); border-radius: var(--ds-radius-md); }
   .empty-recipes h3 { font-family: var(--ds-heading-font); }
   .empty-recipes p { color: var(--ds-muted); margin-bottom: 0; }
@@ -130,5 +136,25 @@ const makePageHref = (page: number) => {
   .pagination a:hover { background: var(--ds-teal); color: white; }
   .pagination .page-disabled { opacity: .45; }
   @media (max-width: 991px) { .recipe-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .recipes-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 575px) { .recipes-header { padding: 55px 15px; } .recipe-filters { grid-template-columns: 1fr; padding: 16px; } .recipes-grid { grid-template-columns: 1fr; gap: 18px; } .filter-actions { justify-content: space-between; } .pagination { gap: 10px; } .pagination a, .pagination .page-disabled { padding: 9px 12px; font-size: .85rem; } }
+  @media (max-width: 767.98px) {
+    .recipes-header { padding: 26px 15px 18px; }
+    .recipes-header h1 { margin: 0; font-size: 1.8rem; }
+    .recipes-intro { display: none; }
+    .recipes-section { padding-top: 14px; }
+    .mobile-cuisine-chips { display: flex; gap: 8px; overflow-x: auto; margin: 0 -4px 14px; padding: 2px 4px 5px; scrollbar-width: none; }
+    .mobile-cuisine-chips::-webkit-scrollbar { display: none; }
+    .cuisine-chip { flex: none; padding: 6px 12px; border-radius: 999px; background: white; color: var(--ds-teal); font-size: .75rem; white-space: nowrap; }
+    .cuisine-chip.is-active, .cuisine-chip.more-chip { background: #fce6dd; color: #8c4939; }
+    .recipes-heading { margin-bottom: 12px; }
+    .recipes-heading h2 { font-size: 1.4rem; }
+    .recipe-filters { grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; margin-bottom: 16px; }
+    .filter-search { grid-column: 1 / -1; }
+    .recipe-filters label { font-size: .75rem; margin-bottom: 4px; }
+    .recipe-filters input, .recipe-filters select { min-height: 40px; padding-block: 7px; font-size: .82rem; }
+    .filter-actions { grid-column: 1 / -1; justify-content: space-between; }
+    .filter-actions button, .filter-actions a { min-height: 38px; padding: 7px 12px; font-size: .82rem; }
+    .recipes-grid { grid-template-columns: 1fr; gap: 10px; }
+    .pagination { gap: 10px; margin-top: 24px; }
+    .pagination a, .pagination .page-disabled { padding: 9px 12px; font-size: .82rem; }
+  }
 </style>

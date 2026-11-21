@@ -171,17 +171,20 @@ const accent = words[words.length - 1];
   /* Phone — circle retreats to the lower-right, becomes a soft accent */
   @media (max-width: 575.98px) {
     .ds-hero {
-      min-height: 440px;
-      padding: 3.25rem 0;
+      min-height: 230px;
+      padding: 2.25rem 0;
     }
     .ds-hero__circle {
-      width: 320px;
-      height: 320px;
-      right: -150px;
+      width: 220px;
+      height: 220px;
+      right: -110px;
       top: auto;
-      bottom: -80px;
+      bottom: -70px;
       transform: none;
       opacity: 0.75;
     }
+    .ds-hero__title { margin-bottom: 1rem; font-size: clamp(2rem, 8vw, 2.65rem); }
+    .ds-hero__eyebrow { margin-bottom: .75rem; font-size: .68rem; }
+    .ds-hero__cta { padding: .55rem 1.25rem; font-size: .88rem; }
   }
 </style>

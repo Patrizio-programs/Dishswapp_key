@@ -50,7 +50,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     const redirectPath = destination === 'recipe' && slug
       ? `/recipes/${slug}/?saved=${action === 'save' ? '1' : '0'}`
-      : `/dashboard?saved=${action === 'save' ? '1' : '0'}`;
+      : destination === 'cookbook'
+        ? `/cookbook?saved=${action === 'save' ? '1' : '0'}`
+        : `/dashboard?saved=${action === 'save' ? '1' : '0'}`;
     return Response.redirect(new URL(redirectPath, request.url), 303);
   } catch (error) {
     console.error('Saved recipe request failed:', error);

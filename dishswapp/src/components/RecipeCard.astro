@@ -4,9 +4,10 @@ import type { Recipe } from '../lib/supabase';
 interface Props {
   recipe: Recipe;
   href: string;
+  compact?: boolean;
 }
 
-const { recipe, href } = Astro.props;
+const { recipe, href, compact = false } = Astro.props;
 
 const {
   title,
@@ -30,7 +31,7 @@ const displayDifficulty =
     : null;
 ---
 
-<a href={href} class="recipe-card">
+<a href={href} class:list={['recipe-card', compact && 'recipe-card--compact']}>
   <div class="recipe-card__image-wrapper">
     {image_url ? (
       <img
@@ -230,5 +231,15 @@ const displayDifficulty =
     .recipe-card__details {
       gap: 8px;
     }
+
+    .recipe-card--compact { display: grid; grid-template-columns: 74px minmax(0, 1fr); height: 78px; }
+    .recipe-card--compact:hover { transform: none; box-shadow: none; }
+    .recipe-card--compact .recipe-card__image-wrapper { width: 74px; height: 100%; aspect-ratio: auto; }
+    .recipe-card--compact .recipe-card__content { min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 8px 10px; }
+    .recipe-card--compact .recipe-card__meta { justify-content: flex-start; gap: 8px; margin: 0 0 3px; }
+    .recipe-card--compact .recipe-card__tag { padding: 0; background: transparent; font-size: .68rem; }
+    .recipe-card--compact .recipe-card__time { font-size: .68rem; }
+    .recipe-card--compact .recipe-card__title { display: -webkit-box; margin: 0; overflow: hidden; font-size: .98rem; line-height: 1.2; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+    .recipe-card--compact .recipe-card__description, .recipe-card--compact .recipe-card__details { display: none; }
   }
 </style>
