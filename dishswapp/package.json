@@ -11,13 +11,17 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "cap:sync": "cap sync android",
+    "cap:open": "cap open android"
   },
   "dependencies": {
     "@astrojs/markdoc": "^2.0.1",
     "@astrojs/node": "^11.1.11",
     "@astrojs/react": "^6.0.0",
     "@astrojs/vercel": "^11.0.20",
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
     "@clerk/astro": "^4.1.22",
     "@keystatic/astro": "^6.0.0",
     "@keystatic/core": "^0.6.7",
@@ -28,5 +32,9 @@
     "astro": "^7.0.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.2",
+    "typescript": "^7.0.2"
   }
 }

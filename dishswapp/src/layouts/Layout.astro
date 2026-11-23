@@ -7,14 +7,24 @@ interface Props {
   title: string;
   description: string;
   ogImage?: string; // absolute URL OR path; if omitted → default
+  /** Keep private pages (login, dashboard, cookbook…) and empty listings out of the index. */
+  noindex?: boolean;
 }
 
-const { title, description, ogImage } = Astro.props;
+const { title, description, ogImage, noindex = false } = Astro.props;
 
 const rawImage = ogImage ?? "/img/og-default.png";
 const ogImageUrl = rawImage.startsWith("http")
   ? rawImage
   : `${SITE}${rawImage}`;
+
+// Canonical URL: drop the query string and use the trailing-slash form that
+// internal links and the paginated routes already point at.
+const canonicalPath =
+  Astro.url.pathname === "/"
+    ? "/"
+    : `${Astro.url.pathname.replace(/\/+$/, "")}/`;
+const canonicalUrl = `${SITE}${canonicalPath}`;
 ---
 
 
@@ -33,6 +43,9 @@ const ogImageUrl = rawImage.startsWith("http")
     <meta name="apple-mobile-web-app-title" content="DishSwapp" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonicalUrl} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <Analytics />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -64,7 +77,7 @@ const ogImageUrl = rawImage.startsWith("http")
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:url" content={`${SITE}${Astro.url.pathname}`} />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:type" content="website" />
 
     <meta name="twitter:card" content="summary_large_image" />
