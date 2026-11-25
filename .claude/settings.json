@@ -1,0 +1,7 @@
+{
+  "enabledPlugins": {
+    "graphiphy@claude-plugins-official": true,
+    "ponytail@claude-plugins-official": true,
+    "agent@claude-plugins-official": true
+  }
+}

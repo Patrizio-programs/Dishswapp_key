@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DishSwapp — Android App UI Spec v1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.min.css" />
+<style>
+/* ================= DishSwapp tokens — Brand Book v2.0, unchanged ================= */
+:root{
+  --ds-teal:#3D717C; --ds-teal-dark:#2A535C; --ds-teal-light:#5A8E97; --ds-teal-tint:#E5EDEF;
+  --ds-pink:#F9B7A4; --ds-pink-soft:#FCE6DD;
+  --ds-spice:#E07A3B; --ds-spice-soft:#F6E0CB;
+  --ds-cream:#FBF7F1; --ds-oat:#EFE5D4; --ds-ink:#2C2A28; --ds-muted:#6B6661; --ds-border:#E5DDD0;
+  --ds-success:#6B7A3A; --ds-danger:#C75D3B;
+  --ds-serif:'Playfair Display', Georgia, serif;
+  --ds-sans:'Inter', system-ui, -apple-system, sans-serif;
+  --ds-mono:'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+  --ds-r-sm:4px; --ds-r-md:10px; --ds-r-lg:18px; --ds-r-pill:999px;
+  --ds-shadow-sm:0 1px 2px rgba(44,42,40,.06);
+  --ds-shadow-md:0 4px 12px rgba(44,42,40,.08);
+  --ds-shadow-lg:0 12px 32px rgba(44,42,40,.12);
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ background:var(--ds-oat); }
+body{ font:400 15px/1.6 var(--ds-sans); color:var(--ds-ink); background:var(--ds-oat); padding:28px 12px 64px; }
+.sheet{ width:960px; max-width:100%; margin:0 auto 26px; background:var(--ds-cream); padding:52px 60px 56px; box-shadow:var(--ds-shadow-md); border-radius:2px; position:relative; overflow:hidden; }
+@media print{
+  body{ background:#fff; padding:0; }
+  .sheet{ width:100%; margin:0; box-shadow:none; border-radius:0; page-break-after:always; }
+}
+
+/* ================= document chrome (mirrors the brand book) ================= */
+.eyebrow{ font:500 11px/1.4 var(--ds-mono); letter-spacing:.22em; text-transform:uppercase; color:var(--ds-spice); }
+.eyebrow.teal{ color:var(--ds-teal); }
+.h1{ font:700 34px/1.15 var(--ds-serif); color:var(--ds-ink); margin:6px 0 4px; }
+.sub{ font:400 15px/1.5 var(--ds-sans); color:var(--ds-muted); }
+.rule{ border:0; border-top:1px solid var(--ds-border); margin:18px 0 26px; }
+.pageno{ position:absolute; top:26px; right:34px; font:500 10px/1 var(--ds-mono); letter-spacing:.18em; color:var(--ds-muted); opacity:.75; }
+h3.mini{ font:700 16px/1.3 var(--ds-serif); color:var(--ds-ink); margin-bottom:8px; }
+p.body{ font:400 14.5px/1.65 var(--ds-sans); color:var(--ds-ink); }
+p.dim{ color:var(--ds-muted); }
+.two-col{ display:grid; grid-template-columns:1fr 1fr; gap:26px; }
+.mono{ font-family:var(--ds-mono); }
+code.k{ font:500 12px var(--ds-mono); background:var(--ds-oat); border-radius:4px; padding:2px 6px; color:var(--ds-ink); white-space:nowrap; }
+code.t{ color:var(--ds-teal); }
+
+/* tables — teal header, hairline rows */
+table.doc{ width:100%; border-collapse:collapse; margin:10px 0 6px; }
+table.doc th{ background:var(--ds-teal); color:#fff; font:500 10.5px/1.3 var(--ds-mono); letter-spacing:.14em; text-transform:uppercase; text-align:left; padding:10px 14px; }
+table.doc td{ font:400 13px/1.5 var(--ds-sans); padding:10px 14px; border-bottom:1px solid var(--ds-border); vertical-align:top; }
+table.doc td.mono{ font-size:12px; }
+table.doc tr:last-child td{ border-bottom:0; }
+
+/* note / do / don't cards */
+.note{ background:var(--ds-pink-soft); border-left:4px solid var(--ds-spice); border-radius:0 var(--ds-r-md) var(--ds-r-md) 0; padding:16px 20px; }
+.note h4{ font:600 15px var(--ds-serif); color:var(--ds-ink); margin-bottom:6px; }
+.note p{ font:400 13.5px/1.6 var(--ds-sans); color:var(--ds-ink); }
+.card-do{ background:#EDF1E4; border-left:4px solid var(--ds-success); border-radius:0 var(--ds-r-md) var(--ds-r-md) 0; padding:16px 20px; }
+.card-dont{ background:var(--ds-pink-soft); border-left:4px solid var(--ds-spice); border-radius:0 var(--ds-r-md) var(--ds-r-md) 0; padding:16px 20px; }
+.card-do h4,.card-dont h4{ font:500 11px var(--ds-mono); letter-spacing:.2em; margin-bottom:8px; }
+.card-do h4{ color:var(--ds-success); } .card-dont h4{ color:var(--ds-spice); }
+.card-do ul,.card-dont ul{ list-style:none; }
+.card-do li,.card-dont li{ font:400 13.5px/1.55 var(--ds-sans); padding-left:16px; position:relative; margin-bottom:6px; color:var(--ds-ink); }
+.card-do li::before{ content:""; position:absolute; left:0; top:9px; width:6px; height:6px; border-radius:50%; background:var(--ds-success); }
+.card-dont li::before{ content:""; position:absolute; left:0; top:7px; width:7px; height:1.5px; background:var(--ds-spice); }
+
+/* callout numbers */
+.dot{ position:absolute; width:21px; height:21px; border-radius:50%; background:var(--ds-spice); color:#fff; font:700 11px/21px var(--ds-sans); text-align:center; z-index:5; }
+.notes{ display:grid; grid-template-columns:1fr 1fr; gap:8px 26px; margin-top:22px; }
+.notes .n{ display:flex; gap:10px; font:400 13px/1.5 var(--ds-sans); color:var(--ds-ink); }
+.notes .n b{ flex-shrink:0; width:20px; height:20px; border-radius:50%; background:var(--ds-spice); color:#fff; font:700 11px/20px var(--ds-sans); text-align:center; }
+.notes .n span em{ color:var(--ds-teal); font-style:normal; font-weight:600; }
+
+/* ================= phone mockup ================= */
+.mockrow{ display:flex; gap:34px; align-items:flex-start; justify-content:center; flex-wrap:wrap; }
+.mock{ position:relative; }
+.phone{ width:296px; border-radius:42px; background:#181614; padding:9px; box-shadow:var(--ds-shadow-lg); }
+.screen{ position:relative; height:604px; border-radius:34px; overflow:hidden; background:var(--ds-cream); display:flex; flex-direction:column; }
+.sbar{ height:23px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:0 14px; font:600 8.5px var(--ds-sans); position:relative; }
+.sbar.teal{ background:var(--ds-teal); color:#fff; }
+.sbar.light{ background:#fff; color:var(--ds-ink); }
+.sbar .cam{ position:absolute; left:50%; top:7.5px; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:#14110f; }
+.sbar .sicons{ display:flex; gap:4px; font-size:9px; }
+.aheader{ height:42px; flex-shrink:0; background:var(--ds-teal); display:flex; align-items:center; justify-content:space-between; padding:0 14px; }
+.wordmark{ font:700 14px var(--ds-serif); color:#fff; letter-spacing:.01em; }
+.wordmark em{ color:var(--ds-pink); }
+.aheader .actions{ display:flex; align-items:center; gap:8px; }
+.avatar{ width:24px; height:24px; border-radius:50%; background:var(--ds-oat); color:var(--ds-ink); font:700 10px/24px var(--ds-sans); text-align:center; }
+.loginpill{ background:var(--ds-pink); color:#2C2A28; font:600 8px var(--ds-sans); border-radius:var(--ds-r-pill); padding:4px 9px; }
+.scontent{ flex:1; padding:11px 12px; overflow:hidden; }
+
+/* top-level tab bar */
+.tabwrap{ flex-shrink:0; background:rgba(251,247,241,.98); box-shadow:0 -4px 18px rgba(44,42,40,.08); border-top:1px solid var(--ds-border); }
+.tabbar{ display:grid; grid-template-columns:repeat(5,1fr); padding:5px 3px 0; }
+.tab{ display:flex; flex-direction:column; align-items:center; gap:1px; padding:4px 0 5px; color:var(--ds-muted); font:500 7.5px var(--ds-sans); text-decoration:none; }
+.tab i{ font-size:15px; line-height:1; }
+.tab.active{ color:var(--ds-teal); font-weight:700; }
+.tab .spdisc{ width:25px; height:25px; border-radius:50%; background:var(--ds-spice); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; margin-top:0; }
+.tab.submit{ color:var(--ds-spice); font-weight:600; }
+.gesture{ height:15px; display:flex; align-items:center; justify-content:center; }
+.gesture i{ width:74px; height:3.5px; border-radius:4px; background:rgba(44,42,40,.30); }
+
+/* flow screens */
+.ftop{ height:42px; flex-shrink:0; background:#fff; border-bottom:1px solid var(--ds-border); display:flex; align-items:center; gap:9px; padding:0 12px; }
+.ftop i.back{ font-size:14px; color:var(--ds-ink); }
+.ftop .ftitle{ font:600 13px var(--ds-serif); color:var(--ds-ink); flex:1; }
+.ftop i.love{ font-size:13px; color:var(--ds-spice); }
+.faction{ flex-shrink:0; padding:8px 12px 5px; background:rgba(251,247,241,.98); border-top:1px solid var(--ds-border); }
+.cta{ height:38px; border-radius:var(--ds-r-md); display:flex; align-items:center; justify-content:center; gap:7px; font:600 12px var(--ds-sans); color:#fff; }
+.cta.spice{ background:var(--ds-spice); }
+.cta.teal{ background:var(--ds-teal); }
+
+/* shared in-screen bits */
+.hero{ border-radius:var(--ds-r-md); background:linear-gradient(150deg, var(--ds-teal-dark) 0%, var(--ds-teal) 55%, var(--ds-teal-light) 100%); padding:13px 13px 12px; color:#fff; }
+.hero .h-eyebrow{ font:500 6.5px var(--ds-mono); letter-spacing:.24em; color:rgba(255,255,255,.72); }
+.hero .h-title{ font:700 15.5px/1.15 var(--ds-serif); margin:5px 0 8px; }
+.hero .h-title em{ color:var(--ds-pink); font-style:italic; }
+.hero .h-cta{ display:inline-block; background:var(--ds-spice); color:#fff; font:600 9px var(--ds-sans); border-radius:var(--ds-r-pill); padding:5px 11px; }
+.pillrail{ display:flex; gap:5px; margin:11px 0 9px; align-items:center; }
+.pill{ font:600 8.5px var(--ds-sans); border-radius:var(--ds-r-pill); padding:4px 10px; background:var(--ds-pink-soft); color:var(--ds-ink); white-space:nowrap; }
+.pill.active{ background:var(--ds-teal); color:#fff; }
+.pill.more{ background:var(--ds-oat); color:var(--ds-muted); }
+.rcard{ display:flex; gap:9px; background:#fff; border:1px solid var(--ds-border); border-radius:var(--ds-r-md); box-shadow:var(--ds-shadow-sm); padding:8px; margin-bottom:8px; position:relative; }
+.rcard .thumb{ width:52px; height:52px; border-radius:var(--ds-r-sm); flex-shrink:0; }
+.rcard .thumb.pink{ background:var(--ds-pink); } .rcard .thumb.oat{ background:var(--ds-oat); } .rcard .thumb.teallight{ background:var(--ds-teal-light); }
+.rcard .rtitle{ font:700 11px/1.25 var(--ds-serif); color:var(--ds-ink); }
+.rcard .rmeta{ font:500 8px var(--ds-mono); color:var(--ds-muted); margin-top:3px; }
+.rcard .heart{ position:absolute; right:9px; top:9px; color:var(--ds-spice); font-size:11px; }
+.eyebrow-in{ font:500 7.5px var(--ds-mono); letter-spacing:.2em; color:var(--ds-teal); margin:9px 0 4px; }
+.ing{ display:flex; gap:7px; align-items:baseline; padding:4.5px 0; border-bottom:1px solid var(--ds-border); font-size:9.5px; }
+.ing:last-child{ border-bottom:0; }
+.ing .q{ font:500 8.5px var(--ds-mono); color:var(--ds-teal); min-width:44px; }
+.step{ display:flex; gap:7px; align-items:flex-start; padding:4px 0; font-size:9.5px; line-height:1.4; color:var(--ds-ink); }
+.step .num{ flex-shrink:0; width:13px; height:13px; border-radius:50%; background:var(--ds-teal); color:#fff; font:700 8px/13px var(--ds-sans); text-align:center; margin-top:1px; }
+.dtitle{ font:700 13px var(--ds-serif); color:var(--ds-ink); margin:2px 0 7px; }
+.fieldlabel{ font:500 7px var(--ds-mono); letter-spacing:.18em; color:var(--ds-muted); margin:8px 0 3px; }
+.field{ background:#fff; border:1px solid var(--ds-border); border-radius:var(--ds-r-sm); height:26px; display:flex; align-items:center; padding:0 8px; font:400 9.5px var(--ds-sans); color:var(--ds-ink); }
+.field.focus{ border-color:var(--ds-teal); box-shadow:0 0 0 2px var(--ds-teal-tint); }
+.field.area{ height:52px; align-items:flex-start; padding-top:5px; color:var(--ds-muted); }
+.usercard{ display:flex; align-items:center; gap:9px; background:#fff; border:1px solid var(--ds-border); border-radius:var(--ds-r-md); padding:10px; }
+.usercard .av{ width:34px; height:34px; border-radius:50%; background:var(--ds-oat); color:var(--ds-ink); font:700 13px/34px var(--ds-sans); text-align:center; }
+.usercard .nm{ font:600 11px var(--ds-sans); color:var(--ds-ink); }
+.usercard .id{ font:500 7.5px var(--ds-mono); color:var(--ds-muted); }
+.rowitem{ display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid var(--ds-border); border-radius:var(--ds-r-md); padding:8px 10px; margin-bottom:6px; font:500 10px var(--ds-sans); color:var(--ds-ink); }
+.rowitem i{ color:var(--ds-muted); font-size:10px; }
+.rowitem .edit{ font:600 8.5px var(--ds-sans); color:var(--ds-teal); }
+.linkrow{ display:flex; gap:14px; justify-content:center; font:600 9px var(--ds-sans); color:var(--ds-teal); margin-top:10px; }
+.loginbox{ margin-top:26px; text-align:center; }
+.loginbox .bigmark{ font:700 22px var(--ds-serif); color:var(--ds-ink); }
+.loginbox .bigmark em{ color:var(--ds-teal); }
+.loginbox .tag{ font:500 7px var(--ds-mono); letter-spacing:.3em; color:var(--ds-teal); margin-top:5px; }
+.authcard{ background:#fff; border:1px solid var(--ds-border); border-radius:var(--ds-r-md); box-shadow:var(--ds-shadow-sm); padding:12px; margin:14px 10px 0; }
+.gbtn{ height:32px; border:1px solid var(--ds-border); border-radius:var(--ds-r-md); display:flex; align-items:center; justify-content:center; gap:7px; font:600 10px var(--ds-sans); color:var(--ds-ink); background:#fff; }
+.gbtn .g{ width:14px; height:14px; border-radius:50%; background:conic-gradient(#EA4335 0 25%, #FBBC05 25% 50%, #34A853 50% 75%, #4285F4 75% 100%); }
+.orline{ display:flex; align-items:center; gap:8px; color:var(--ds-muted); font:500 7.5px var(--ds-mono); margin:10px 0; }
+.orline::before,.orline::after{ content:""; flex:1; height:1px; background:var(--ds-border); }
+.cookgrid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.cookcard{ background:#fff; border:1px solid var(--ds-border); border-radius:var(--ds-r-md); overflow:hidden; box-shadow:var(--ds-shadow-sm); position:relative; }
+.cookcard .cimg{ height:62px; }
+.cookcard .cimg.pink{ background:var(--ds-pink); } .cookcard .cimg.teallight{ background:var(--ds-teal-light); }
+.cookcard .cbody{ padding:7px 8px 8px; }
+.cookcard .ct{ font:700 9.5px/1.2 var(--ds-serif); color:var(--ds-ink); }
+.cookcard .cm{ font:500 7px var(--ds-mono); color:var(--ds-muted); margin-top:2px; }
+.cookcard .heart{ position:absolute; right:7px; top:7px; color:var(--ds-spice); font-size:10px; }
+
+/* caption under phones */
+.mockcap{ text-align:center; font:500 9px var(--ds-mono); letter-spacing:.22em; color:var(--ds-muted); margin-top:12px; }
+
+/* ================= cover & back ================= */
+.cover{ min-height:920px; padding:52px 60px; }
+.cover .blob-pink{ position:absolute; top:-140px; right:-120px; width:430px; height:430px; border-radius:50%; background:var(--ds-pink); }
+.cover .blob-teal{ position:absolute; bottom:-160px; left:-120px; width:360px; height:360px; border-radius:50%; background:var(--ds-teal); }
+.cover .badge{ position:absolute; top:52px; right:60px; background:var(--ds-pink-soft); color:var(--ds-ink); font:500 11px var(--ds-mono); letter-spacing:.18em; border-radius:var(--ds-r-pill); padding:8px 16px; z-index:2; }
+.cover .kicker{ font:500 12px var(--ds-mono); letter-spacing:.3em; color:var(--ds-teal); margin-top:150px; position:relative; z-index:2; }
+.cover .brand{ font:700 92px/1 var(--ds-serif); color:var(--ds-ink); margin-top:38px; position:relative; z-index:2; }
+.cover .brand em{ color:var(--ds-teal); }
+.cover .doctitle{ font:700 40px/1.15 var(--ds-serif); color:var(--ds-ink); margin-top:26px; position:relative; z-index:2; }
+.cover .docsub{ font:400 16px/1.6 var(--ds-sans); color:var(--ds-muted); margin-top:14px; max-width:520px; position:relative; z-index:2; }
+.cover .tagline{ font:600 24px var(--ds-serif); font-style:italic; color:var(--ds-teal); margin-top:22px; position:relative; z-index:2; }
+.cover .palcard{ position:relative; z-index:2; margin-top:330px; width:400px; background:#fff; border:1px solid var(--ds-border); border-radius:var(--ds-r-md); box-shadow:var(--ds-shadow-md); padding:16px 18px; }
+.cover .swatches{ display:flex; border-radius:var(--ds-r-sm); overflow:hidden; height:26px; }
+.cover .swatches span{ flex:1; }
+.cover .palcaption{ display:flex; justify-content:space-between; font:500 9px/1.6 var(--ds-mono); letter-spacing:.14em; color:var(--ds-muted); margin-top:10px; }
+
+.backcover{ background:var(--ds-teal); color:#fff; text-align:left; }
+.backcover .endkicker{ font:500 11px var(--ds-mono); letter-spacing:.3em; color:rgba(255,255,255,.65); margin-top:170px; }
+.backcover .endtitle{ font:600 74px/1.1 var(--ds-serif); font-style:italic; margin-top:26px; }
+.backcover .endsub{ font:400 15.5px/1.65 var(--ds-sans); color:rgba(255,255,255,.85); max-width:460px; margin-top:20px; }
+.backcover .endfoot{ display:flex; justify-content:space-between; font:500 10px var(--ds-mono); letter-spacing:.22em; color:rgba(255,255,255,.6); margin-top:190px; padding-bottom:8px; }
+.backcover .blob-pink{ position:absolute; top:-90px; right:-110px; width:340px; height:340px; border-radius:50%; background:var(--ds-pink); }
+.backcover .blob-spice{ position:absolute; bottom:-150px; left:-80px; width:300px; height:300px; border-radius:50%; background:var(--ds-spice); }
+
+/* token chips row (foundations) */
+.chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.chip{ display:flex; align-items:center; gap:7px; background:#fff; border:1px solid var(--ds-border); border-radius:var(--ds-r-pill); padding:5px 12px 5px 6px; font:500 11px var(--ds-mono); color:var(--ds-ink); }
+.chip .sw{ width:18px; height:18px; border-radius:50%; border:1px solid var(--ds-border); }
+
+/* type scale demo */
+.type-demo .t-row{ display:flex; align-items:baseline; gap:14px; padding:9px 0; border-bottom:1px solid var(--ds-border); }
+.type-demo .t-role{ width:130px; flex-shrink:0; font:500 9px var(--ds-mono); letter-spacing:.12em; color:var(--ds-muted); text-transform:uppercase; }
+.type-demo .t-sample{ color:var(--ds-ink); }
+</style>
+</head>
+<body>
+
+<!-- ============================== COVER ============================== -->
+<section class="sheet cover">
+  <div class="blob-pink"></div>
+  <div class="blob-teal"></div>
+  <div class="badge">v1.0 &nbsp;·&nbsp; NOV 2026</div>
+  <div class="kicker">APP UI SPEC</div>
+  <div class="brand">Dish<em>Swapp</em></div>
+  <div class="doctitle">Android App UI Spec</div>
+  <div class="docsub">App-mode design for the Capacitor shell — bottom navigation, native feel, and Android conventions, built strictly on the Brand Book v2.0 tokens. The website stays untouched.</div>
+  <div class="tagline">Collect, Collaborate, Cook.</div>
+  <div class="palcard">
+    <div class="swatches">
+      <span style="background:#E07A3B"></span><span style="background:#F9B7A4"></span><span style="background:#3D717C"></span><span style="background:#FBF7F1"></span><span style="background:#2C2A28"></span>
+    </div>
+    <div class="palcaption"><span>EDITION APP · NOV 2026</span><span>COMPANION TO BRAND BOOK V2.0</span></div>
+  </div>
+</section>
+
+<!-- ============================== 01 SCOPE ============================== -->
+<section class="sheet">
+  <div class="pageno">01 / 12</div>
+  <div class="eyebrow">01 · Scope</div>
+  <h2 class="h1">One site, two skins</h2>
+  <p class="sub">The Android app is a Capacitor WebView shell that loads the same dishswapp.pgmja.com pages as every browser visitor. "App mode" is a render variant of those pages — nothing about the content, data, or auth changes.</p>
+  <hr class="rule" />
+  <p class="body">The shell's WebView announces itself in its user agent (<code class="k">; wv)</code>). The site reads that header once per request and renders the page with <code class="k">html.app-mode</code>, which switches on the app skin: a compact teal header, a fixed bottom tab bar, no web footer, and Android-appropriate touch behavior. Every browser — desktop and phone — sees the current website, pixel for pixel.</p>
+  <div style="margin-top:18px">
+    <table class="doc">
+      <tr><th style="width:50%">The app gets</th><th>What never changes</th></tr>
+      <tr><td>Compact app header (wordmark + account) replacing the hamburger navbar</td><td>All pages, routes, and content</td></tr>
+      <tr><td>Fixed 5-tab bottom bar — Home · Search · Submit · Cookbook · Profile</td><td>Clerk authentication and Google sign-in flow</td></tr>
+      <tr><td>Flow screens with a back-arrow app bar and sticky action button</td><td>Supabase data, recipe APIs, admin tools</td></tr>
+      <tr><td>Footer hidden; About · Donate move onto the Home screen</td><td>SEO, OG tags, PWA manifest</td></tr>
+      <tr><td>Native touch: no pull-to-refresh, no tap flash, safe-area spacing</td><td>Website layout at every breakpoint</td></tr>
+    </table>
+  </div>
+  <div class="note" style="margin-top:18px">
+    <h4>A note on scope</h4>
+    <p>This spec covers the app-mode <strong>skin</strong> only. It inherits every token, type rule, and voice decision from <strong>DishSwapp Brand Book v2.0 · Nov 2026</strong> — nothing here redefines the brand, it relocates it. Deployment, Clerk flows, and the Play Store listing are out of scope.</p>
+  </div>
+</section>
+
+<!-- ============================== 02 FOUNDATIONS ============================== -->
+<section class="sheet">
+  <div class="pageno">02 / 12</div>
+  <div class="eyebrow">02 · Foundations</div>
+  <h2 class="h1">Same tokens, new surfaces</h2>
+  <p class="sub">Brand Book §05–§09 apply verbatim. This is the subset the app chrome touches most.</p>
+  <hr class="rule" />
+  <div class="chips">
+    <span class="chip"><span class="sw" style="background:#3D717C"></span>--ds-teal #3D717C</span>
+    <span class="chip"><span class="sw" style="background:#2A535C"></span>--ds-teal-dark #2A535C</span>
+    <span class="chip"><span class="sw" style="background:#5A8E97"></span>--ds-teal-light #5A8E97</span>
+    <span class="chip"><span class="sw" style="background:#E5EDEF"></span>--ds-teal-tint #E5EDEF</span>
+    <span class="chip"><span class="sw" style="background:#F9B7A4"></span>--ds-pink #F9B7A4</span>
+    <span class="chip"><span class="sw" style="background:#FCE6DD"></span>--ds-pink-soft #FCE6DD</span>
+    <span class="chip"><span class="sw" style="background:#E07A3B"></span>--ds-spice #E07A3B</span>
+    <span class="chip"><span class="sw" style="background:#F6E0CB"></span>--ds-spice-soft #F6E0CB</span>
+    <span class="chip"><span class="sw" style="background:#FBF7F1"></span>--ds-cream #FBF7F1</span>
+    <span class="chip"><span class="sw" style="background:#EFE5D4"></span>--ds-oat #EFE5D4</span>
+    <span class="chip"><span class="sw" style="background:#2C2A28"></span>--ds-ink #2C2A28</span>
+    <span class="chip"><span class="sw" style="background:#6B6661"></span>--ds-muted #6B6661</span>
+    <span class="chip"><span class="sw" style="background:#E5DDD0"></span>--ds-border #E5DDD0</span>
+    <span class="chip"><span class="sw" style="background:#6B7A3A"></span>--ds-success #6B7A3A</span>
+  </div>
+  <div class="two-col" style="margin-top:22px">
+    <div>
+      <h3 class="mini">App type roles</h3>
+      <div class="type-demo">
+        <div class="t-row"><span class="t-role">Screen title</span><span class="t-sample" style="font:700 19px var(--ds-serif)">Grandma's Sunday ragù</span></div>
+        <div class="t-row"><span class="t-role">Card title</span><span class="t-sample" style="font:700 15px var(--ds-serif)">Maple glazed salmon</span></div>
+        <div class="t-row"><span class="t-role">Body / steps</span><span class="t-sample" style="font:400 14px var(--ds-sans)">Sweat the soffritto in olive oil.</span></div>
+        <div class="t-row"><span class="t-role">Tab label</span><span class="t-sample" style="font:500 11px var(--ds-sans)">Cookbook</span></div>
+        <div class="t-row"><span class="t-role">Meta · quantities</span><span class="t-sample" style="font:500 12px var(--ds-mono)">45 min · ★ 4.8 · 400 g</span></div>
+        <div class="t-row" style="border-bottom:0"><span class="t-role">Eyebrow / label</span><span class="t-sample" style="font:500 10px var(--ds-mono); letter-spacing:.2em">INGREDIENTS · 7</span></div>
+      </div>
+    </div>
+    <div>
+      <h3 class="mini">Geometry &amp; elevation</h3>
+      <table class="doc">
+        <tr><th>Token</th><th>Value</th><th>Used for</th></tr>
+        <tr><td class="mono">--ds-r-sm</td><td class="mono">4px</td><td>Thumbnails, field inputs</td></tr>
+        <tr><td class="mono">--ds-r-md</td><td class="mono">10px</td><td>Cards, buttons, hero blocks</td></tr>
+        <tr><td class="mono">--ds-r-lg</td><td class="mono">18px</td><td>Sheets, modals</td></tr>
+        <tr><td class="mono">--ds-shadow-sm</td><td class="mono">0 1px 2px</td><td>Cards at rest</td></tr>
+        <tr><td class="mono">--ds-shadow-md</td><td class="mono">0 4px 12px</td><td>Pressed cards</td></tr>
+        <tr><td class="mono">--ds-shadow-lg</td><td class="mono">0 12px 32px</td><td>Sticky action bars only</td></tr>
+      </table>
+      <p class="body dim" style="font-size:13.5px; margin-top:10px">60 / 30 / 10 holds on every screen: cream canvas, teal structure, pink + spice as the "look at this" layer. On any screen, spice appears once — the primary action.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== 03 ANDROID ALIGNMENT ============================== -->
+<section class="sheet">
+  <div class="pageno">03 / 12</div>
+  <div class="eyebrow">03 · Android Alignment</div>
+  <h2 class="h1">Behave like an Android app</h2>
+  <p class="sub">The brand look stays; the platform conventions follow Material. Mockups in this spec are drawn on a 412 × 892 dp Pixel-class frame.</p>
+  <hr class="rule" />
+  <div class="two-col">
+    <div class="card-do">
+      <h4>DO</h4>
+      <ul>
+        <li><strong>48 dp minimum touch targets</strong> on every interactive element; 8 dp rhythm for all spacing (already the brand grid).</li>
+        <li><strong>Edge-to-edge teal top:</strong> status bar and app header share #3D717C so the brand owns the top edge; white system icons.</li>
+        <li><strong>Gesture navigation:</strong> back gesture pops WebView history; on top-level screens it exits. The system pill floats over the cream strip below the tab bar.</li>
+        <li><strong>State layers, not ripples:</strong> pressed elements tint to oat (#EFE5D4) over 200 ms; cards press flat (shadow md → sm).</li>
+        <li><strong>Line icons at 24 dp, 1.5 px stroke</strong> — Bootstrap Icons, ink by default, spice reserved for "love" and "spice" moments (Brand Book §12).</li>
+        <li><strong>Fixed labels under tab icons</strong> — Material bottom navigation, not an iOS tab bar, not a drawer.</li>
+      </ul>
+    </div>
+    <div class="card-dont">
+      <h4>DON'T</h4>
+      <ul>
+        <li>No pull-to-refresh spinner — the recipe feed is not a mail inbox; overscroll is disabled in app mode.</li>
+        <li>No hamburger drawer in the app — the tab bar covers Dashboard / About / Donate routing (About · Donate live on Home).</li>
+        <li>No iOS patterns: no home indicator, no back chevron "&lt;" (use the Android arrow ←), no bottom sheet grabs.</li>
+        <li>No filled/solid icon variants — the system is line-only.</li>
+        <li>No pure black (#000) anywhere — ink #2C2A28 on cream only.</li>
+        <li>No serif (Playfair) inside buttons, tab labels, or nav — sans (Inter) carries all UI text (Brand Book §08).</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" style="margin-top:20px">
+    <h4>Why the fonts don't change</h4>
+    <p>Android apps ship with Roboto by default, but DishSwapp's identity is Playfair + Inter. The WebView already loads both via Google Fonts, and Inter's metrics sit close enough to Roboto that system text (paste sheets, autofill) won't clash. Keep the brand faces.</p>
+  </div>
+</section>
+
+<!-- ============================== 04 SHELL ANATOMY ============================== -->
+<section class="sheet">
+  <div class="pageno">04 / 12</div>
+  <div class="eyebrow">04 · App Shell Anatomy</div>
+  <h2 class="h1">Five layers, top to bottom</h2>
+  <p class="sub">Every top-level screen is built from this one stack. Flow screens swap layers 2 and 4 (see §05).</p>
+  <hr class="rule" />
+  <div style="display:flex; gap:40px; align-items:flex-start;">
+    <div class="mock">
+      <span class="dot" style="top:-2px; left:150px;">1</span>
+      <span class="dot" style="top:36px; left:-9px;">2</span>
+      <span class="dot" style="top:200px; right:-9px;">3</span>
+      <span class="dot" style="bottom:52px; left:-9px;">4</span>
+      <span class="dot" style="bottom:16px; right:60px;">5</span>
+      <div class="phone">
+        <div class="screen">
+          <div class="sbar teal"><span>17:30</span><span class="cam"></span><span class="sicons"><i class="bi bi-wifi"></i><i class="bi bi-reception-4"></i><i class="bi bi-battery-full"></i></span></div>
+          <div class="aheader"><span class="wordmark">Dish<em>Swapp</em></span><span class="actions"><span class="avatar">P</span></span></div>
+          <div class="scontent">
+            <div class="hero">
+              <div class="h-eyebrow">OPEN-SOURCE RECIPES</div>
+              <div class="h-title">Collect, collaborate, <em>cook.</em></div>
+              <span class="h-cta">Start exploring</span>
+            </div>
+            <div class="pillrail"><span class="pill active">All</span><span class="pill">Italian</span><span class="pill">Mexican</span><span class="pill">Asian</span><span class="pill more">+12</span></div>
+            <div class="rcard"><span class="thumb pink"></span><div><div class="rtitle">Grandma's Sunday ragù</div><div class="rmeta">45 min · Italian · ★ 4.8</div></div><i class="bi bi-heart-fill heart"></i></div>
+            <div class="rcard"><span class="thumb oat"></span><div><div class="rtitle">Tinga de pollo</div><div class="rmeta">50 min · Mexican · ★ 4.6</div></div></div>
+          </div>
+          <div class="tabwrap">
+            <div class="tabbar">
+              <span class="tab active"><i class="bi bi-house-door"></i><span>Home</span></span>
+              <span class="tab"><i class="bi bi-search"></i><span>Search</span></span>
+              <span class="tab submit"><i class="bi bi-plus-lg spdisc"></i><span>Submit</span></span>
+              <span class="tab"><i class="bi bi-journal-bookmark"></i><span>Cookbook</span></span>
+              <span class="tab"><i class="bi bi-person"></i><span>Profile</span></span>
+            </div>
+            <div class="gesture"><i></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1; min-width:0;">
+      <table class="doc">
+        <tr><th>Layer</th><th>Spec</th></tr>
+        <tr><td><b>1 · Status bar</b></td><td>Teal #3D717C, white icons, 24 dp. Blends into the header — no seam. <code class="k">theme-color</code> already correct.</td></tr>
+        <tr><td><b>2 · App header</b></td><td>42 dp teal. Wordmark left (white + pink italic "Swapp"), account right: pink <b>Login / Sign up</b> pill when signed out, avatar (Clerk <code class="k">&lt;UserButton /&gt;</code>) when signed in.</td></tr>
+        <tr><td><b>3 · Content</b></td><td>Cream #FBF7F1, 12 dp gutters, the only scrolling layer. Nothing fixed overlays it.</td></tr>
+        <tr><td><b>4 · Bottom tab bar</b></td><td>52 dp + gesture strip, cream 98% with hairline top and upward shadow <code class="k">sm</code>. Five tabs, 48 dp targets each.</td></tr>
+        <tr><td><b>5 · Gesture pill</b></td><td>System-drawn, floats over the cream strip; the tab bar adds <code class="k">env(safe-area-inset-bottom)</code> beneath it.</td></tr>
+      </table>
+      <p class="body dim" style="font-size:13.5px; margin-top:14px">The stack is implemented once in <code class="k">Navbar.astro</code>'s app variant plus <code class="k">src/styles/app.css</code> — pages opt in by route type, not by copying markup.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== 05 NAVIGATION MODEL ============================== -->
+<section class="sheet">
+  <div class="pageno">05 / 12</div>
+  <div class="eyebrow">05 · Navigation Model</div>
+  <h2 class="h1">Two screen types</h2>
+  <p class="sub">Top-level screens carry the tab bar. Flow screens trade it for a back-arrow app bar and one sticky action — the pattern the Brand Book's own mobile mockups (§18) establish.</p>
+  <hr class="rule" />
+  <table class="doc">
+    <tr><th style="width:22%">Screen type</th><th style="width:26%">Top</th><th style="width:26%">Bottom</th><th>Routes</th></tr>
+    <tr><td><b>Top-level</b></td><td>App header (teal)</td><td>Tab bar</td><td class="mono" style="font-size:11.5px">/ · /recipes · /cuisine/* · /cookbook · /dashboard</td></tr>
+    <tr><td><b>Flow</b></td><td>White app bar: ← · title · action</td><td>Sticky action bar (one CTA)</td><td class="mono" style="font-size:11.5px">/recipes/[slug] · /submit-recipe · /dashboard/edit/* · /login · /recipe-submitted</td></tr>
+  </table>
+  <h3 class="mini" style="margin-top:22px">Tab bar inventory</h3>
+  <table class="doc">
+    <tr><th>Tab</th><th>Route</th><th>Icon · 24 dp</th><th>Auth</th></tr>
+    <tr><td><b>Home</b></td><td class="mono">/</td><td><i class="bi bi-house-door"></i> house-door</td><td>always</td></tr>
+    <tr><td><b>Search</b></td><td class="mono">/recipes/</td><td><i class="bi bi-search"></i> search</td><td>always</td></tr>
+    <tr><td><b>Submit</b></td><td class="mono">/submit-recipe</td><td><i class="bi bi-plus-lg"></i> in a spice disc</td><td>opens form; sign-in gate shown by Clerk</td></tr>
+    <tr><td><b>Cookbook</b></td><td class="mono">/cookbook</td><td><i class="bi bi-journal-bookmark"></i> journal-bookmark</td><td>redirects to /login when signed out</td></tr>
+    <tr><td><b>Profile</b></td><td class="mono">/dashboard</td><td><i class="bi bi-person"></i> person</td><td>redirects to /login when signed out</td></tr>
+  </table>
+  <div class="two-col" style="margin-top:20px">
+    <div>
+      <h3 class="mini">Tab states</h3>
+      <div style="display:flex; gap:22px; padding:12px 0 4px;">
+        <div class="tab" style="display:flex"><i class="bi bi-journal-bookmark" style="font-size:17px"></i><span>Cookbook</span></div>
+        <div class="tab active" style="display:flex"><i class="bi bi-journal-bookmark-fill" style="font-size:17px"></i><span>Cookbook</span></div>
+        <div class="tab" style="display:flex; background:var(--ds-oat); border-radius:8px; padding:4px 10px;"><i class="bi bi-journal-bookmark" style="font-size:17px"></i><span>Cookbook</span></div>
+      </div>
+      <p class="body dim" style="font-size:13px; margin-top:6px">Default: muted #6B6661 · Active: teal #3D717C, weight 700 · Press: oat tint, 200 ms. The active tab's icon may take its filled variant — the one filled exception, matching mobile-web behavior.</p>
+    </div>
+    <div>
+      <h3 class="mini">Back stack rules</h3>
+      <p class="body" style="font-size:13.5px">Android back on a flow screen pops to the previous top-level screen — never sideways between tabs. Tapping the current tab scrolls to top; tapping it again does nothing. After sign-out (Profile → account menu), the app lands on Home.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== 06 MOCKUP HOME ============================== -->
+<section class="sheet">
+  <div class="pageno">06 / 12</div>
+  <div class="eyebrow">06 · Mockup — Home</div>
+  <h2 class="h1">The front door, pocket-sized</h2>
+  <p class="sub">Condensed hero, scrollable cuisine pill rail, recipe feed, five-tab bar.</p>
+  <hr class="rule" />
+  <div class="mockrow">
+    <div class="mock">
+      <span class="dot" style="top:88px; left:-9px;">1</span>
+      <span class="dot" style="top:196px; right:-9px;">2</span>
+      <span class="dot" style="top:240px; left:-9px;">3</span>
+      <span class="dot" style="top:330px; right:-9px;">4</span>
+      <span class="dot" style="bottom:88px; left:-9px;">5</span>
+      <div class="phone"><div class="screen">
+        <div class="sbar teal"><span>17:30</span><span class="cam"></span><span class="sicons"><i class="bi bi-wifi"></i><i class="bi bi-reception-4"></i><i class="bi bi-battery-full"></i></span></div>
+        <div class="aheader"><span class="wordmark">Dish<em>Swapp</em></span><span class="actions"><span class="avatar">P</span></span></div>
+        <div class="scontent">
+          <div class="hero">
+            <div class="h-eyebrow">OPEN-SOURCE RECIPES</div>
+            <div class="h-title">Collect, collaborate, <em>cook.</em></div>
+            <span class="h-cta">Start exploring</span>
+          </div>
+          <div class="pillrail"><span class="pill active">All</span><span class="pill">Italian</span><span class="pill">Mexican</span><span class="pill">Asian</span><span class="pill more">+12</span></div>
+          <div class="rcard"><i class="bi bi-heart-fill heart"></i><span class="thumb pink"></span><div><div class="rtitle">Grandma's Sunday ragù</div><div class="rmeta">45 min · Italian · ★ 4.8</div></div></div>
+          <div class="rcard"><span class="thumb oat"></span><div><div class="rtitle">Tinga de pollo</div><div class="rmeta">50 min · Mexican · ★ 4.6</div></div></div>
+          <div class="rcard"><span class="thumb teallight"></span><div><div class="rtitle">Maple glazed salmon</div><div class="rmeta">25 min · Asian · ★ 4.7</div></div></div>
+        </div>
+        <div class="tabwrap">
+          <div class="tabbar">
+            <span class="tab active"><i class="bi bi-house-door-fill"></i><span>Home</span></span>
+            <span class="tab"><i class="bi bi-search"></i><span>Search</span></span>
+            <span class="tab submit"><i class="bi bi-plus-lg spdisc"></i><span>Submit</span></span>
+            <span class="tab"><i class="bi bi-journal-bookmark"></i><span>Cookbook</span></span>
+            <span class="tab"><i class="bi bi-person"></i><span>Profile</span></span>
+          </div>
+          <div class="gesture"><i></i></div>
+        </div>
+      </div></div>
+      <div class="mockcap">HOME · 412 × 892 DP</div>
+    </div>
+    <div style="max-width:330px; padding-top:8px;">
+      <p class="body" style="font-size:13.5px"><b>Hero shrinks to a 100 dp band</b> on mobile (Brand Book §18) — same gradient, same Playfair headline, the page's single spice CTA.</p>
+      <p class="body dim" style="font-size:13.5px; margin-top:12px">The cuisine rail scrolls horizontally; pills stay pink with the active one teal. Cards reuse the site's recipe-card primitive: Playfair title, mono meta, spice heart only when saved.</p>
+      <p class="body dim" style="font-size:13.5px; margin-top:12px">Footer content does not exist here — About · Donate live at the bottom of this screen's scroll (see §09).</p>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="n"><b>1</b><span><em>App header</em> — signed-in state shows the account avatar; signed-out shows the pink Login / Sign up pill.</span></div>
+    <div class="n"><b>2</b><span><em>Spice discipline</em> — one spice element per screen. Here it's the Start exploring CTA.</span></div>
+    <div class="n"><b>3</b><span><em>Pill rail</em> — horizontally scrollable, pink cuisine tags, active teal.</span></div>
+    <div class="n"><b>4</b><span><em>Cards</em> — white, hairline border, shadow-sm; the whole card is the tap target.</span></div>
+    <div class="n"><b>5</b><span><em>Tab bar</em> — active Home takes the filled icon variant; labels always visible.</span></div>
+  </div>
+</section>
+
+<!-- ============================== 07 MOCKUP RECIPE DETAIL ============================== -->
+<section class="sheet">
+  <div class="pageno">07 / 12</div>
+  <div class="eyebrow">07 · Mockup — Recipe Detail</div>
+  <h2 class="h1">Where the cooking happens</h2>
+  <p class="sub">A flow screen: white back-arrow app bar on top, sticky spice CTA on the bottom, no tab bar.</p>
+  <hr class="rule" />
+  <div class="mockrow">
+    <div class="mock">
+      <span class="dot" style="top:36px; left:-9px;">1</span>
+      <span class="dot" style="top:120px; right:-9px;">2</span>
+      <span class="dot" style="top:250px; left:-9px;">3</span>
+      <span class="dot" style="bottom:88px; right:-9px;">4</span>
+      <div class="phone"><div class="screen">
+        <div class="sbar light"><span>17:30</span><span class="cam"></span><span class="sicons"><i class="bi bi-wifi"></i><i class="bi bi-reception-4"></i><i class="bi bi-battery-full"></i></span></div>
+        <div class="ftop"><i class="bi bi-arrow-left back"></i><span class="ftitle">Grandma's Sunday ragù</span><i class="bi bi-heart-fill love"></i></div>
+        <div class="scontent" style="padding:0;">
+          <div style="background:linear-gradient(165deg, var(--ds-teal) 0%, var(--ds-teal-dark) 45%, var(--ds-pink) 130%); padding:14px 13px 13px; color:#fff;">
+            <div style="font:500 6.5px var(--ds-mono); letter-spacing:.24em; color:rgba(255,255,255,.75)">ITALIAN · 45 MIN · SERVES 6</div>
+            <div style="font:700 15.5px/1.15 var(--ds-serif); margin-top:5px;">Grandma's Sunday ragù</div>
+            <div style="font:400 8px var(--ds-sans); color:rgba(255,255,255,.78); margin-top:4px;">by Patrizio · updated 3 days ago · 142 cooks tried this</div>
+          </div>
+          <div style="padding:4px 12px 10px;">
+            <div class="eyebrow-in">INGREDIENTS · 7</div>
+            <div class="ing"><span class="q">400 g</span><span>beef chuck</span></div>
+            <div class="ing"><span class="q">200 g</span><span>pork shoulder</span></div>
+            <div class="ing"><span class="q">120 ml</span><span>whole milk</span></div>
+            <div class="ing"><span class="q">+ 4 more</span><span style="color:var(--ds-muted)">tap to expand</span></div>
+            <div class="eyebrow-in">METHOD · 5 STEPS</div>
+            <div class="step"><span class="num">1</span><span>Sweat the soffritto in olive oil, 7 min.</span></div>
+            <div class="step"><span class="num">2</span><span>Brown the diced meat on all sides.</span></div>
+            <div class="step"><span class="num">3</span><span>Pour in the milk, reduce until almost gone.</span></div>
+          </div>
+        </div>
+        <div class="faction"><div class="cta spice"><i class="bi bi-fire"></i> Start cooking</div></div>
+        <div class="gesture" style="background:rgba(251,247,241,.98)"><i></i></div>
+      </div></div>
+      <div class="mockcap">RECIPE DETAIL · 412 × 892 DP</div>
+    </div>
+    <div style="max-width:330px; padding-top:8px;">
+      <p class="body" style="font-size:13.5px"><b>The app bar replaces the website header</b> on flow screens: back arrow, Playfair title, and the save action (spice heart when saved). Android's back gesture does the same job as the arrow.</p>
+      <p class="body dim" style="font-size:13.5px; margin-top:12px">Quantities use mono with tabular figures so the column aligns (Brand Book §09). The method reuses the teal numeric badge.</p>
+      <p class="body dim" style="font-size:13.5px; margin-top:12px">The sticky bar is the screen's only spice element — the "cook this" moment. On the edit flow the same bar turns teal with a Save action.</p>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="n"><b>1</b><span><em>App bar</em> — white, 42 dp, hairline bottom; ← matches the platform back gesture.</span></div>
+    <div class="n"><b>2</b><span><em>Hero overlay</em> — gradient scrim keeps the white Playfair title WCAG-AA on any photo.</span></div>
+    <div class="n"><b>3</b><span><em>Ingredients</em> — mono quantities, hairline rows, "tap to expand" keeps the fold short.</span></div>
+    <div class="n"><b>4</b><span><em>Sticky CTA</em> — full-width spice bar above the gesture pill; shadow-lg allowed here only.</span></div>
+  </div>
+</section>
+
+<!-- ============================== 08 MOCKUP SUBMIT ============================== -->
+<section class="sheet">
+  <div class="pageno">08 / 12</div>
+  <div class="eyebrow">08 · Mockup — Submit a Recipe</div>
+  <h2 class="h1">The form, thumb-friendly</h2>
+  <p class="sub">A flow screen. Mono eyebrow labels, 48 dp fields, the keyboard never covers the action.</p>
+  <hr class="rule" />
+  <div class="mockrow">
+    <div class="mock">
+      <span class="dot" style="top:170px; left:-9px;">1</span>
+      <span class="dot" style="top:305px; right:-9px;">2</span>
+      <span class="dot" style="bottom:88px; left:-9px;">3</span>
+      <div class="phone"><div class="screen">
+        <div class="sbar light"><span>17:30</span><span class="cam"></span><span class="sicons"><i class="bi bi-wifi"></i><i class="bi bi-reception-4"></i><i class="bi bi-battery-full"></i></span></div>
+        <div class="ftop"><i class="bi bi-arrow-left back"></i><span class="ftitle">Submit a recipe</span></div>
+        <div class="scontent">
+          <div class="fieldlabel">RECIPE TITLE</div>
+          <div class="field focus">Grandma's ragù</div>
+          <div class="fieldlabel">CUISINE</div>
+          <div class="pillrail" style="margin:2px 0 4px;"><span class="pill active">Italian</span><span class="pill">Mexican</span><span class="pill">Asian</span><span class="pill more">+12</span></div>
+          <div class="fieldlabel">COOK TIME</div>
+          <div class="field">45 min</div>
+          <div class="fieldlabel">NOTES</div>
+          <div class="field area">Add a note about your swap…</div>
+          <div class="fieldlabel">PHOTO</div>
+          <div class="field" style="color:var(--ds-teal); font-weight:600;"><i class="bi bi-camera" style="margin-right:6px;"></i> Add a photo</div>
+        </div>
+        <div class="faction"><div class="cta teal">Share your recipe</div></div>
+        <div class="gesture" style="background:rgba(251,247,241,.98)"><i></i></div>
+      </div></div>
+      <div class="mockcap">SUBMIT · 412 × 892 DP</div>
+    </div>
+    <div style="max-width:330px; padding-top:8px;">
+      <p class="body" style="font-size:13.5px"><b>Form fields keep the Brand Book primitive:</b> white surface, hairline border, 4 px radius; focus wears the teal ring (teal border + 12% teal-tint halo).</p>
+      <p class="body dim" style="font-size:13.5px; margin-top:12px">Labels are JetBrains Mono eyebrows — never placeholders as labels. Cuisine is a pill row, not a dropdown, so it's one tap.</p>
+      <p class="body dim" style="font-size:13.5px; margin-top:12px">The action bar stays visible above the keyboard (the WebView resizes with <code class="k">adjustResize</code>). Button label follows the voice table — a real phrase, never "Submit".</p>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="n"><b>1</b><span><em>Focus state</em> — teal border + teal-tint halo, the only ring in the system.</span></div>
+    <div class="n"><b>2</b><span><em>Cuisine pills</em> — pink tags, active teal; one tap instead of a select.</span></div>
+    <div class="n"><b>3</b><span><em>Sticky action</em> — teal primary on flow forms; spice stays reserved for "cook this" moments.</span></div>
+  </div>
+</section>
+
+<!-- ============================== 09 MOCKUP COOKBOOK + PROFILE ============================== -->
+<section class="sheet">
+  <div class="pageno">09 / 12</div>
+  <div class="eyebrow">09 · Mockup — Cookbook &amp; Profile</div>
+  <h2 class="h1">Your kitchen, our cookbook</h2>
+  <p class="sub">Two more top-level screens. Profile is where the app-only About · Donate row lives.</p>
+  <hr class="rule" />
+  <div class="mockrow">
+    <div class="mock">
+      <div class="phone"><div class="screen">
+        <div class="sbar teal"><span>17:30</span><span class="cam"></span><span class="sicons"><i class="bi bi-wifi"></i><i class="bi bi-reception-4"></i><i class="bi bi-battery-full"></i></span></div>
+        <div class="aheader"><span class="wordmark">Dish<em>Swapp</em></span><span class="actions"><span class="avatar">P</span></span></div>
+        <div class="scontent">
+          <div class="dtitle">Your kitchen, our cookbook.</div>
+          <div class="cookgrid">
+            <div class="cookcard"><i class="bi bi-heart-fill heart"></i><div class="cimg pink"></div><div class="cbody"><div class="ct">Grandma's Sunday ragù</div><div class="cm">45 MIN · ★ 4.8</div></div></div>
+            <div class="cookcard"><i class="bi bi-heart-fill heart"></i><div class="cimg teallight"></div><div class="cbody"><div class="ct">Maple glazed salmon</div><div class="cm">25 MIN · ★ 4.7</div></div></div>
+          </div>
+          <p class="body dim" style="font-size:10px; margin-top:12px;">Saved recipes appear here the moment you tap Save — no refresh, no fuss.</p>
+        </div>
+        <div class="tabwrap">
+          <div class="tabbar">
+            <span class="tab"><i class="bi bi-house-door"></i><span>Home</span></span>
+            <span class="tab"><i class="bi bi-search"></i><span>Search</span></span>
+            <span class="tab submit"><i class="bi bi-plus-lg spdisc"></i><span>Submit</span></span>
+            <span class="tab active"><i class="bi bi-journal-bookmark-fill"></i><span>Cookbook</span></span>
+            <span class="tab"><i class="bi bi-person"></i><span>Profile</span></span>
+          </div>
+          <div class="gesture"><i></i></div>
+        </div>
+      </div></div>
+      <div class="mockcap">COOKBOOK · 412 × 892 DP</div>
+    </div>
+    <div class="mock">
+      <span class="dot" style="top:205px; right:-9px;">1</span>
+      <div class="phone"><div class="screen">
+        <div class="sbar teal"><span>17:30</span><span class="cam"></span><span class="sicons"><i class="bi bi-wifi"></i><i class="bi bi-reception-4"></i><i class="bi bi-battery-full"></i></span></div>
+        <div class="aheader"><span class="wordmark">Dish<em>Swapp</em></span><span class="actions"><span class="avatar">P</span></span></div>
+        <div class="scontent">
+          <div class="usercard"><span class="av">P</span><div><div class="nm">Patrizio</div><div class="id">SIGNED IN WITH GOOGLE</div></div></div>
+          <div class="eyebrow-in">YOUR RECIPES</div>
+          <div class="rowitem"><span>Grandma's Sunday ragù</span><span class="edit">Edit</span></div>
+          <div class="rowitem"><span>Tinga de pollo</span><span class="edit">Edit</span></div>
+          <div class="eyebrow-in">MORE</div>
+          <div class="rowitem"><span>About DishSwapp</span><i class="bi bi-chevron-right"></i></div>
+          <div class="rowitem"><span>Donate</span><i class="bi bi-chevron-right"></i></div>
+          <div class="rowitem"><span>Recipe review</span><i class="bi bi-chevron-right"></i></div>
+        </div>
+        <div class="tabwrap">
+          <div class="tabbar">
+            <span class="tab"><i class="bi bi-house-door"></i><span>Home</span></span>
+            <span class="tab"><i class="bi bi-search"></i><span>Search</span></span>
+            <span class="tab submit"><i class="bi bi-plus-lg spdisc"></i><span>Submit</span></span>
+            <span class="tab"><i class="bi bi-journal-bookmark"></i><span>Cookbook</span></span>
+            <span class="tab active"><i class="bi bi-person-fill"></i><span>Profile</span></span>
+          </div>
+          <div class="gesture"><i></i></div>
+        </div>
+      </div></div>
+      <div class="mockcap">PROFILE · 412 × 892 DP</div>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="n"><b>1</b><span><em>App-only furniture</em> — About · Donate live here (and at the foot of Home), because the web footer is hidden in app mode. "Recipe review" appears for admins only.</span></div>
+  </div>
+</section>
+
+<!-- ============================== 10 MOCKUP LOGIN ============================== -->
+<section class="sheet">
+  <div class="pageno">10 / 12</div>
+  <div class="eyebrow">10 · Mockup — Login</div>
+  <h2 class="h1">Quiet door, warm welcome</h2>
+  <p class="sub">A flow screen. The Clerk <code class="k">&lt;SignIn /&gt;</code> component renders inside the card — the app skin just frames it.</p>
+  <hr class="rule" />
+  <div class="mockrow">
+    <div class="mock">
+      <div class="phone"><div class="screen">
+        <div class="sbar light"><span>17:30</span><span class="cam"></span><span class="sicons"><i class="bi bi-wifi"></i><i class="bi bi-reception-4"></i><i class="bi bi-battery-full"></i></span></div>
+        <div class="loginbox">
+          <div class="bigmark">Dish<em>Swapp</em></div>
+          <div class="tag">COLLECT · COLLABORATE · COOK</div>
+        </div>
+        <div class="authcard">
+          <div class="gbtn"><span class="g"></span> Continue with Google</div>
+          <div class="orline">OR</div>
+          <div class="cta teal" style="height:32px; font-size:10px;">Use email instead</div>
+          <p class="body dim" style="font-size:8.5px; text-align:center; margin-top:10px;">By continuing you agree to keep it tasty.</p>
+        </div>
+        <div style="flex:1"></div>
+        <div class="gesture" style="background:rgba(251,247,241,.98)"><i></i></div>
+      </div></div>
+      <div class="mockcap">LOGIN · 412 × 892 DP</div>
+    </div>
+    <div style="max-width:330px; padding-top:8px;">
+      <p class="body" style="font-size:13.5px"><b>No header, no tab bar.</b> Signing in is a single focused task; the back arrow lives in the system gesture and the site's own flow.</p>
+      <p class="body dim" style="font-size:13.5px; margin-top:12px">Google sign-in runs inside the app's WebView (Clerk-managed). First login on a device asks for credentials; after that, Google's cookie persists in the app and it's one tap.</p>
+      <p class="body dim" style="font-size:13.5px; margin-top:12px">The Clerk component's own styling is left untouched — it already inherits the site's appearance.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== 11 NATIVE BEHAVIOR ============================== -->
+<section class="sheet">
+  <div class="pageno">11 / 12</div>
+  <div class="eyebrow">11 · Native Behavior Spec</div>
+  <h2 class="h1">The invisible design</h2>
+  <p class="sub">Feel is a feature. Each row is a concrete rule with its implementation point.</p>
+  <hr class="rule" />
+  <table class="doc">
+    <tr><th style="width:24%">Behavior</th><th>Spec</th><th style="width:30%">Implemented at</th></tr>
+    <tr><td><b>Back gesture</b></td><td>Pops WebView history; on top-level screens exits the app. Flow screens never trap.</td><td class="mono" style="font-size:11.5px">Capacitor default — no code</td></tr>
+    <tr><td><b>Overscroll / PTR</b></td><td>Disabled: no rubber-band, no pull-to-refresh glow at the top of feeds.</td><td class="mono" style="font-size:11.5px">app.css · overscroll-behavior-y: none</td></tr>
+    <tr><td><b>Tap feedback</b></td><td>No gray tap flash; pressed elements tint oat over 200 ms; cards press flat.</td><td class="mono" style="font-size:11.5px">app.css · tap-highlight + :active states</td></tr>
+    <tr><td><b>Zoom</b></td><td>No double-tap zoom on UI; pinch zoom on recipe text stays available.</td><td class="mono" style="font-size:11.5px">app.css · touch-action: manipulation</td></tr>
+    <tr><td><b>Status bar</b></td><td>Teal #3D717C, white icons, blended into the app header.</td><td class="mono" style="font-size:11.5px">theme-color meta (already set)</td></tr>
+    <tr><td><b>Safe areas</b></td><td>Header adds top inset, tab bar adds bottom inset — nothing under the punch hole or pill.</td><td class="mono" style="font-size:11.5px">app.css · env(safe-area-inset-*)</td></tr>
+    <tr><td><b>Text selection</b></td><td>Recipe content selectable; header, tab bar, and buttons are not.</td><td class="mono" style="font-size:11.5px">app.css · user-select scoped to chrome</td></tr>
+    <tr><td><b>Splash</b></td><td>Teal background, swap-loop icon centered — Android 12+ system splash.</td><td class="mono" style="font-size:11.5px">Android asset (later APK change)</td></tr>
+    <tr><td><b>Dark mode</b></td><td>Out of scope v1. Token swap already specified in Brand Book §19 when wanted.</td><td class="mono" style="font-size:11.5px">—</td></tr>
+  </table>
+  <div class="note" style="margin-top:18px">
+    <h4>Android 15 edge-to-edge</h4>
+    <p>The app targets SDK 36, where the system draws content edge-to-edge. The teal header + teal status bar make the top edge seamless by design; if any screen's content still rides under system bars on a test device, add <code class="k">env(safe-area-inset-top)</code> padding in app.css — decided on device, not speculatively.</p>
+  </div>
+</section>
+
+<!-- ============================== 12 IMPLEMENTATION ============================== -->
+<section class="sheet">
+  <div class="pageno">12 / 12</div>
+  <div class="eyebrow">12 · Implementation Map</div>
+  <h2 class="h1">Where every rule lands</h2>
+  <p class="sub">The app skin ships with the website deploy — the APK doesn't change, the shell just serves the new skin.</p>
+  <hr class="rule" />
+  <table class="doc">
+    <tr><th style="width:34%">File</th><th>Change</th></tr>
+    <tr><td class="mono" style="font-size:12px">src/middleware.ts</td><td>Detect the WebView UA (<code class="k">; wv)</code>) and set <code class="k">Astro.locals.isApp</code>, chained before <code class="k">clerkMiddleware()</code>.</td></tr>
+    <tr><td class="mono" style="font-size:12px">src/env.d.ts</td><td>Type <code class="k">App.Locals.isApp: boolean</code>.</td></tr>
+    <tr><td class="mono" style="font-size:12px">src/layouts/Layout.astro</td><td>Render <code class="k">&lt;html class="app-mode"&gt;</code> when isApp; import <code class="k">src/styles/app.css</code>.</td></tr>
+    <tr><td class="mono" style="font-size:12px">src/components/Navbar.astro</td><td>App variant: app header + tab bar on top-level routes; flow routes (recipe, submit, edit, login) render the white app bar pattern instead. Website markup untouched.</td></tr>
+    <tr><td class="mono" style="font-size:12px">src/components/Footer.astro</td><td>Render nothing when isApp.</td></tr>
+    <tr><td class="mono" style="font-size:12px">src/pages/index.astro</td><td>App-only About · Donate row at the foot of Home.</td></tr>
+    <tr><td class="mono" style="font-size:12px">src/styles/app.css <span class="eyebrow" style="letter-spacing:.1em">NEW</span></td><td>Every rule in this spec, all scoped under <code class="k">html.app-mode</code>.</td></tr>
+  </table>
+  <h3 class="mini" style="margin-top:20px">App tokens (paste into src/styles/app.css)</h3>
+  <div style="background:var(--ds-ink); border-radius:var(--ds-r-md); padding:18px 22px; margin-top:8px;">
+<pre style="font:400 12px/1.75 var(--ds-mono); color:#E8E2D8; overflow-x:auto;"><span style="color:#7FB5A8;">html.app-mode</span> {
+  <span style="color:#F9B7A4;">--app-header-h:</span> 42px;        <span style="color:#8A857E;">/* + env(safe-area-inset-top) */</span>
+  <span style="color:#F9B7A4;">--app-tabbar-h:</span> 52px;        <span style="color:#8A857E;">/* + env(safe-area-inset-bottom) */</span>
+  <span style="color:#F9B7A4;">--app-gutter:</span> 12px;          <span style="color:#8A857E;">/* 8-pt rhythm: 12 = 1.5 × 8 */</span>
+  <span style="color:#F9B7A4;">--app-motion:</span> 200ms;         <span style="color:#8A857E;">/* all state transitions */</span>
+  <span style="color:#F9B7A4;">--app-touch-min:</span> 48px;       <span style="color:#8A857E;">/* Material minimum target */</span>
+  <span style="color:#F9B7A4;">--app-bar-blur:</span> rgba(251,247,241,.98);
+}</pre>
+  </div>
+  <p class="body dim" style="font-size:13.5px; margin-top:14px">Everything else — colors, radii, shadows, type — reads the existing Brand Book tokens; app.css must not redefine them.</p>
+  <div class="note" style="margin-top:16px">
+    <h4>Verification, in order</h4>
+    <p>1 · <code class="k">npm run build</code> passes &nbsp;·&nbsp; 2 · Dev server: WebView UA renders app-mode, browser UA renders the unchanged site &nbsp;·&nbsp; 3 · Screenshots at 412 dp confirm each mockup in §06–§10 &nbsp;·&nbsp; 4 · Deploy, reopen the app on device — tab bar, header, spacing, back gesture. The APK needs no rebuild.</p>
+  </div>
+</section>
+
+<!-- ============================== BACK COVER ============================== -->
+<section class="sheet backcover">
+  <div class="blob-pink"></div>
+  <div class="blob-spice"></div>
+  <div class="endkicker">END OF THE APP UI SPEC</div>
+  <div class="endtitle">Cook<br />together.</div>
+  <div class="endsub">Same site, same brand — now holding the phone the way an Android app should. Take the spec, wire the skin, and ship app mode with the next deploy.</div>
+  <div class="endfoot"><span>DISHSWAPP APP UI SPEC V1.0</span><span>NOV 2026 · COMPANION TO BRAND BOOK V2.0</span></div>
+</section>
+
+</body>
+</html>

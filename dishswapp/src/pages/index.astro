@@ -18,8 +18,26 @@ import RecipeOfTheMonth from '../components/RecipeOfTheMonth.astro';
   description="DishSwapp is an open-source community where home cooks discover, share and improve recipes from Italian, Mexican, Asian kitchens and beyond."
 >
 <Navbar></Navbar>
+<div class="app-home-links d-none">
+  <a href="/about">About</a>
+  <a href="/donate">Donate</a>
+</div>
 <Hero></Hero>
 <CuisineCard></CuisineCard>
 <RecipeOfTheMonth />
 <Footer></Footer>
 </Layout>
+
+<style>
+  :global(html.app-mode) .app-home-links {
+    display: flex !important;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px;
+    background: var(--ds-cream);
+  }
+  :global(html.app-mode) .app-home-links a {
+    color: var(--ds-teal);
+    text-decoration: none;
+  }
+</style>

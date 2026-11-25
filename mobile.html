@@ -1,0 +1,1798 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DishSwapp — Android mobile design proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --ds-teal: #3D717C;
+  --ds-teal-dark: #2A535C;
+  --ds-teal-light: #5A8E97;
+  --ds-teal-tint: #E5EDEF;
+  --ds-pink: #F9B7A4;
+  --ds-pink-soft: #FCE6DD;
+  --ds-spice: #E07A3B;
+  --ds-spice-soft: #F6E0CB;
+  --ds-cream: #FBF7F1;
+  --ds-oat: #EFE5D4;
+  --ds-ink: #2C2A28;
+  --ds-muted: #6B6661;
+  --ds-border: #E5DDD0;
+  --ds-success: #6B7A3A;
+  --ds-danger: #C75D3B;
+  --serif: "Playfair Display", Georgia, serif;
+  --sans: "Inter", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  color: var(--ds-ink);
+  font-family: var(--sans);
+  background: #e9e4dc;
+}
+
+body { padding: 14px 0; }
+
+.page {
+  width: 210mm;
+  height: 297mm;
+  margin: 0 auto 14px;
+  padding: 15mm 15mm 17mm;
+  position: relative;
+  overflow: hidden;
+  background: var(--ds-cream);
+  box-shadow: 0 4px 24px rgba(44,42,40,.13);
+  page-break-after: always;
+  break-after: page;
+}
+
+.page:last-child { page-break-after: auto; break-after: auto; }
+
+h1, h2, h3, h4, p { margin-top: 0; }
+
+.serif { font-family: var(--serif); }
+.mono { font-family: var(--mono); }
+
+.kicker {
+  margin: 0 0 8px;
+  color: var(--ds-spice);
+  font: 700 9px/1.4 var(--mono);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+
+.page-head {
+  margin-bottom: 17px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.page-head h2 {
+  margin: 0 0 4px;
+  color: var(--ds-ink);
+  font: 700 27px/1.1 var(--serif);
+}
+
+.page-head p {
+  margin: 0;
+  color: var(--ds-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.footer {
+  position: absolute;
+  left: 15mm;
+  right: 15mm;
+  bottom: 7mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--ds-muted);
+  font: 500 8px/1.3 var(--mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.card {
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  background: #fffdfa;
+  box-shadow: 0 1px 2px rgba(44,42,40,.05);
+}
+
+.small-label {
+  color: var(--ds-muted);
+  font: 700 8px/1.4 var(--mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 21px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--ds-teal-dark);
+  background: var(--ds-teal-tint);
+  font-size: 9px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tag.pink {
+  color: #65483e;
+  background: var(--ds-pink-soft);
+}
+
+.tag.oat {
+  color: var(--ds-ink);
+  background: var(--ds-oat);
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.panel {
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid var(--ds-border);
+  background: #fffdfa;
+}
+
+.panel h3 {
+  margin: 0 0 9px;
+  font: 700 17px/1.2 var(--serif);
+}
+
+.panel ul {
+  margin: 0;
+  padding-left: 17px;
+}
+
+.panel li {
+  margin: 0 0 7px;
+  color: var(--ds-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.panel.keep { border-top: 4px solid var(--ds-teal); }
+.panel.change { border-top: 4px solid var(--ds-spice); }
+
+.note {
+  padding: 11px 13px;
+  border-left: 4px solid var(--ds-spice);
+  border-radius: 8px;
+  background: var(--ds-pink-soft);
+  color: var(--ds-ink);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.note strong { color: var(--ds-teal-dark); }
+
+.journey-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.journey {
+  padding: 13px;
+  min-height: 91px;
+  border-radius: 10px;
+  background: var(--ds-oat);
+}
+
+.journey b {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--ds-teal-dark);
+  font: 700 9px/1.3 var(--mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.journey p {
+  margin: 0;
+  color: var(--ds-ink);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+/* Cover */
+.cover { background: var(--ds-cream); }
+.cover-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.cover-orb.pink {
+  width: 235mm;
+  height: 235mm;
+  top: -133mm;
+  right: -116mm;
+  background: var(--ds-pink);
+}
+.cover-orb.teal {
+  width: 118mm;
+  height: 118mm;
+  left: -64mm;
+  bottom: -67mm;
+  background: var(--ds-teal);
+}
+.cover-top {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--ds-teal-dark);
+  font: 700 9px/1.4 var(--mono);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.cover-top span:last-child {
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: var(--ds-ink);
+  background: rgba(255,253,250,.76);
+  letter-spacing: .08em;
+}
+.cover-main {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 16px;
+  align-items: center;
+  margin-top: 54mm;
+}
+.cover h1 {
+  margin: 0 0 13px;
+  color: var(--ds-ink);
+  font: 700 43px/.99 var(--serif);
+  letter-spacing: -.035em;
+}
+.cover h1 em {
+  color: var(--ds-teal);
+  font-weight: 600;
+}
+.cover-dek {
+  max-width: 340px;
+  margin: 0 0 17px;
+  color: var(--ds-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.cover-tagline {
+  margin: 0 0 20px;
+  color: var(--ds-teal);
+  font: italic 600 19px/1.2 var(--serif);
+}
+.cover-meta {
+  position: absolute;
+  z-index: 2;
+  left: 15mm;
+  right: 15mm;
+  bottom: 13mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  color: var(--ds-muted);
+  font: 500 8px/1.5 var(--mono);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.swatches {
+  display: flex;
+  width: 275px;
+  height: 23px;
+  overflow: hidden;
+  border: 1px solid rgba(44,42,40,.12);
+  border-radius: 7px;
+}
+.swatches span { flex: 1; }
+.swatches span:nth-child(1) { background: var(--ds-spice); }
+.swatches span:nth-child(2) { background: var(--ds-pink); }
+.swatches span:nth-child(3) { background: var(--ds-teal); }
+.swatches span:nth-child(4) { background: var(--ds-oat); }
+.swatches span:nth-child(5) { background: var(--ds-ink); }
+
+.cover-device {
+  justify-self: center;
+  width: 220px;
+  padding: 7px;
+  border: 1px solid #181716;
+  border-radius: 31px;
+  background: #292725;
+  box-shadow: 0 15px 35px rgba(44,42,40,.22);
+  transform: rotate(2deg);
+}
+.cover-screen {
+  height: 375px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--ds-cream);
+}
+.cover-status {
+  height: 22px;
+  padding: 4px 11px;
+  color: #fff;
+  background: var(--ds-teal);
+  display: flex;
+  justify-content: space-between;
+  font: 500 8px/1 var(--mono);
+}
+.cover-bar {
+  height: 39px;
+  padding: 0 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  background: var(--ds-teal);
+  font-size: 12px;
+  font-weight: 700;
+}
+.cover-bar span em { color: var(--ds-pink); font-family: var(--serif); }
+.cover-preview-content { padding: 13px 12px; }
+.cover-preview-content .small-label { color: var(--ds-spice); }
+.cover-preview-content h3 {
+  margin: 5px 0;
+  font: 700 19px/1.1 var(--serif);
+}
+.cover-preview-content p {
+  margin: 0 0 11px;
+  color: var(--ds-muted);
+  font-size: 9px;
+}
+.cover-preview-search {
+  padding: 9px;
+  border: 1px solid var(--ds-border);
+  border-radius: 9px;
+  color: var(--ds-muted);
+  background: #fffdfa;
+  font-size: 8px;
+}
+.cover-preview-food {
+  height: 94px;
+  margin-top: 11px;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(125deg, #d5b08d, #8e6756);
+}
+.cover-preview-food:after {
+  content: "";
+  position: absolute;
+  width: 82px;
+  height: 65px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #985035 0 31%, #dfc78f 32% 39%, #fbf7f1 40% 60%, #d6c8ae 61% 66%, transparent 67%);
+}
+.cover-preview-title {
+  margin-top: 8px;
+  font: 700 12px/1.2 var(--serif);
+}
+.cover-preview-meta {
+  margin-top: 5px;
+  color: var(--ds-muted);
+  font: 8px/1.3 var(--mono);
+}
+.cover-preview-nav {
+  height: 38px;
+  margin-top: 12px;
+  padding: 7px;
+  display: flex;
+  justify-content: space-around;
+  border-top: 1px solid var(--ds-border);
+  color: var(--ds-teal);
+  font: 8px/1 var(--sans);
+}
+
+/* Android shell diagram + tables */
+.shell-flow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 15px;
+}
+.shell-step {
+  flex: 1;
+  min-height: 43px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  background: var(--ds-teal);
+  color: white;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.shell-step.light {
+  background: var(--ds-oat);
+  color: var(--ds-ink);
+}
+.shell-arrow {
+  color: var(--ds-spice);
+  font: 700 15px/1 var(--mono);
+}
+.platform-grid {
+  display: grid;
+  grid-template-columns: .95fr 1.05fr;
+  gap: 15px;
+}
+.platform-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.platform-list li {
+  display: grid;
+  grid-template-columns: 23px 1fr;
+  gap: 7px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--ds-border);
+  font-size: 10px;
+  line-height: 1.4;
+}
+.platform-list .n {
+  color: var(--ds-spice);
+  font: 700 10px/1.4 var(--mono);
+}
+.platform-list strong { color: var(--ds-teal-dark); }
+.token-table, .spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9px;
+}
+.token-table th, .spec-table th {
+  padding: 8px 7px;
+  color: white;
+  background: var(--ds-teal);
+  text-align: left;
+  font: 700 8px/1.3 var(--mono);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.token-table td, .spec-table td {
+  padding: 7px;
+  border-bottom: 1px solid var(--ds-border);
+  vertical-align: top;
+  line-height: 1.35;
+}
+.token-table td:nth-child(1),
+.token-table td:nth-child(2) {
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+.token-table td:nth-child(1) { color: var(--ds-teal-dark); }
+.token-table td:nth-child(2) { font-weight: 700; }
+.type-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 9px;
+  margin-top: 14px;
+}
+.type-card {
+  padding: 10px;
+  border-radius: 9px;
+  background: #fffdfa;
+  border: 1px solid var(--ds-border);
+}
+.type-card b {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--ds-teal-dark);
+  font: 700 8px/1.3 var(--mono);
+  text-transform: uppercase;
+}
+.type-card p {
+  margin: 0;
+  color: var(--ds-muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+/* Screen mockups */
+.mockup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+  justify-items: center;
+}
+.mockup-caption {
+  margin: 8px 0 0;
+  text-align: center;
+  color: var(--ds-muted);
+  font: 700 8px/1.4 var(--mono);
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.device {
+  width: 260px;
+  padding: 5px;
+  border: 1px solid #171615;
+  border-radius: 31px;
+  background: #292725;
+  box-shadow: 0 10px 24px rgba(44,42,40,.17);
+}
+.phone {
+  width: 248px;
+  height: 535px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-radius: 25px;
+  background: var(--ds-cream);
+}
+.status {
+  height: 19px;
+  flex: 0 0 19px;
+  padding: 3px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  background: var(--ds-teal);
+  font: 500 8px/1 var(--mono);
+}
+.status .right { letter-spacing: .06em; }
+.appbar {
+  height: 40px;
+  flex: 0 0 40px;
+  padding: 0 11px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  background: var(--ds-teal);
+  font-size: 12px;
+  font-weight: 600;
+}
+.appbar .brand {
+  font: 700 15px/1 var(--serif);
+  letter-spacing: -.04em;
+}
+.appbar .brand span { color: var(--ds-pink); font-style: italic; }
+.appbar .title { font-size: 12px; }
+.appbar .actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.appbar .back { font-size: 18px; font-weight: 400; }
+.phone-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 10px 11px;
+  color: var(--ds-ink);
+}
+.phone-content h3 {
+  margin: 3px 0 2px;
+  font: 700 17px/1.12 var(--serif);
+}
+.phone-content h4 {
+  margin: 0;
+  font: 700 12px/1.2 var(--serif);
+}
+.phone-content .eyebrow {
+  margin: 0 0 4px;
+  color: var(--ds-spice);
+  font: 700 7px/1.35 var(--mono);
+  letter-spacing: .12em;
+}
+.phone-content .subline {
+  margin: 0 0 9px;
+  color: var(--ds-muted);
+  font-size: 8px;
+  line-height: 1.35;
+}
+.mock-search {
+  height: 31px;
+  margin: 7px 0 10px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--ds-border);
+  border-radius: 9px;
+  color: var(--ds-muted);
+  background: #fffdfa;
+  font-size: 8px;
+}
+.section-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0 6px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.section-row span {
+  color: var(--ds-teal);
+  font-size: 7px;
+  font-weight: 600;
+}
+.chiprail {
+  display: flex;
+  gap: 5px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.chip {
+  min-height: 20px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #60483f;
+  background: var(--ds-pink-soft);
+  font-size: 7px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.chip.selected {
+  color: white;
+  background: var(--ds-teal);
+}
+.food-photo {
+  height: 76px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 9px;
+  background: linear-gradient(125deg, #d5b08d, #986f5c 54%, #d8b192);
+}
+.food-photo.tall { height: 92px; }
+.food-photo.thumb {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  border-radius: 8px;
+}
+.food-photo .plate {
+  position: absolute;
+  width: 83px;
+  height: 66px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #985035 0 30%, #dfc78f 31% 39%, #fbf7f1 40% 60%, #d6c8ae 61% 66%, transparent 67%);
+}
+.food-photo.thumb .plate {
+  width: 48px;
+  height: 42px;
+}
+.food-photo .herb {
+  position: absolute;
+  width: 9px;
+  height: 5px;
+  border-radius: 80% 20%;
+  background: #5b6c40;
+  transform: rotate(-24deg);
+  z-index: 1;
+}
+.food-photo .herb.one { left: 38%; top: 40%; }
+.food-photo .herb.two { left: 56%; top: 57%; transform: rotate(25deg); }
+.photo-label {
+  position: absolute;
+  z-index: 2;
+  right: 5px;
+  bottom: 5px;
+  padding: 3px 5px;
+  color: white;
+  border-radius: 4px;
+  background: rgba(44,42,40,.57);
+  font: 500 5px/1.2 var(--mono);
+  letter-spacing: .06em;
+}
+.feature-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-top: 6px;
+}
+.feature-title strong {
+  font: 700 12px/1.15 var(--serif);
+}
+.feature-meta {
+  margin-top: 3px;
+  color: var(--ds-muted);
+  font: 7px/1.35 var(--mono);
+}
+.feature-actions {
+  margin-top: 5px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--ds-border);
+  color: var(--ds-teal);
+  font-size: 7px;
+  font-weight: 600;
+}
+.recipe-peek {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0 0;
+}
+.recipe-peek strong {
+  display: block;
+  font: 700 10px/1.15 var(--serif);
+}
+.recipe-peek span {
+  color: var(--ds-muted);
+  font: 7px/1.35 var(--mono);
+}
+.bottom-nav {
+  height: 46px;
+  flex: 0 0 46px;
+  padding: 3px 4px 2px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid var(--ds-border);
+  background: #fffdfa;
+}
+.nav-item {
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--ds-muted);
+  font-size: 6px;
+  line-height: 1.1;
+}
+.nav-item.active { color: var(--ds-teal-dark); font-weight: 700; }
+.nav-item .indicator {
+  width: 28px;
+  height: 15px;
+  margin-bottom: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+}
+.nav-item.active .indicator { background: var(--ds-teal-tint); }
+.nav-item svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gesture {
+  height: 12px;
+  flex: 0 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffdfa;
+}
+.gesture span {
+  width: 42px;
+  height: 3px;
+  border-radius: 99px;
+  background: #292725;
+}
+.result-count {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 9px 0 5px;
+  color: var(--ds-muted);
+  font-size: 8px;
+}
+.result {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 63px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--ds-border);
+}
+.result-copy { flex: 1; min-width: 0; }
+.result-copy strong {
+  display: block;
+  margin-bottom: 4px;
+  font: 700 11px/1.15 var(--serif);
+}
+.result-copy span {
+  color: var(--ds-muted);
+  font: 7px/1.35 var(--mono);
+}
+.result .save { color: var(--ds-teal); font-size: 12px; }
+.filter-row {
+  display: flex;
+  gap: 4px;
+  margin: 7px 0 4px;
+  overflow: hidden;
+}
+.filter-chip {
+  padding: 5px 6px;
+  border: 1px solid var(--ds-border);
+  border-radius: 999px;
+  color: var(--ds-ink);
+  background: #fffdfa;
+  font-size: 6.5px;
+  white-space: nowrap;
+}
+.filter-chip.on {
+  border-color: var(--ds-teal);
+  color: var(--ds-teal-dark);
+  background: var(--ds-teal-tint);
+}
+.mock-check {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  border: 1px solid var(--ds-teal);
+  border-radius: 4px;
+  vertical-align: -2px;
+}
+.ingredient {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 23px;
+  border-bottom: 1px dashed var(--ds-border);
+  color: var(--ds-ink);
+  font-size: 8px;
+}
+.ingredient .qty {
+  min-width: 42px;
+  color: var(--ds-teal-dark);
+  font: 500 8px/1.2 var(--mono);
+}
+.detail-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0 4px;
+  color: var(--ds-teal-dark);
+  font: 700 7px/1.3 var(--mono);
+  letter-spacing: .12em;
+}
+.detail-heading span:last-child {
+  color: var(--ds-muted);
+  font: 500 6px/1.3 var(--sans);
+  letter-spacing: 0;
+}
+.recipe-title {
+  margin: 6px 0 3px;
+  font: 700 19px/1.05 var(--serif);
+}
+.recipe-byline {
+  margin-bottom: 7px;
+  color: var(--ds-muted);
+  font-size: 7px;
+  line-height: 1.35;
+}
+.detail-meta {
+  color: var(--ds-muted);
+  font: 7px/1.4 var(--mono);
+  letter-spacing: .04em;
+}
+.step-preview {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 4px 0;
+  font-size: 7px;
+  line-height: 1.35;
+}
+.step-badge {
+  flex: 0 0 15px;
+  width: 15px;
+  height: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: white;
+  background: var(--ds-teal);
+  font: 700 7px/1 var(--mono);
+}
+.sticky-cta {
+  height: 52px;
+  flex: 0 0 52px;
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid var(--ds-border);
+  background: #fffdfa;
+}
+.save-button {
+  width: 42px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ds-border);
+  border-radius: 10px;
+  color: var(--ds-teal);
+  font-size: 14px;
+}
+.spice-button {
+  flex: 1;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: var(--ds-ink);
+  background: var(--ds-spice);
+  font-size: 10px;
+  font-weight: 700;
+}
+.page-note {
+  margin-top: 13px;
+  padding: 10px 12px;
+  border-left: 4px solid var(--ds-spice);
+  border-radius: 8px;
+  background: var(--ds-pink-soft);
+  color: var(--ds-ink);
+  font-size: 9px;
+  line-height: 1.5;
+}
+.page-note b { color: var(--ds-teal-dark); }
+
+/* Cooking mode */
+.progress-caption {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
+  color: var(--ds-muted);
+  font: 700 7px/1.4 var(--mono);
+  letter-spacing: .1em;
+}
+.progress-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--ds-oat);
+}
+.progress-track span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: var(--ds-teal);
+}
+.cook-title {
+  margin: 17px 0 8px;
+  font: 700 22px/1.08 var(--serif);
+}
+.cook-instruction {
+  margin: 0 0 13px;
+  color: var(--ds-ink);
+  font-size: 10px;
+  line-height: 1.55;
+}
+.timer-card {
+  padding: 11px;
+  border: 1px solid var(--ds-border);
+  border-radius: 11px;
+  background: var(--ds-oat);
+}
+.timer-card .small-label { color: var(--ds-teal-dark); }
+.timer-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+}
+.timer-time {
+  color: var(--ds-ink);
+  font: 700 19px/1 var(--mono);
+}
+.timer-start {
+  padding: 7px 10px;
+  border-radius: 8px;
+  color: white;
+  background: var(--ds-teal);
+  font-size: 8px;
+  font-weight: 700;
+}
+.tip-box {
+  margin-top: 11px;
+  padding: 9px;
+  border-radius: 9px;
+  background: var(--ds-teal-tint);
+  color: var(--ds-teal-dark);
+  font-size: 8px;
+  line-height: 1.4;
+}
+.step-controls {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  margin-top: 15px;
+}
+.step-controls .prev {
+  min-width: 65px;
+  padding: 9px 5px;
+  border: 1px solid var(--ds-border);
+  border-radius: 9px;
+  color: var(--ds-teal-dark);
+  text-align: center;
+  font-size: 8px;
+  font-weight: 600;
+}
+.step-controls .next {
+  flex: 1;
+  padding: 10px 5px;
+  border-radius: 9px;
+  color: white;
+  background: var(--ds-teal);
+  text-align: center;
+  font-size: 8px;
+  font-weight: 700;
+}
+.cook-footer {
+  padding: 9px 10px;
+  border-top: 1px solid var(--ds-border);
+  background: #fffdfa;
+  text-align: center;
+  color: var(--ds-muted);
+  font-size: 7px;
+}
+.cook-footer b { color: var(--ds-teal-dark); }
+
+/* Cookbook */
+.cookbook-intro {
+  margin: 4px 0 9px;
+  font: 700 18px/1.12 var(--serif);
+}
+.cookbook-intro span {
+  display: block;
+  margin-top: 4px;
+  color: var(--ds-muted);
+  font: 400 8px/1.4 var(--sans);
+}
+.book-tabs {
+  display: flex;
+  gap: 13px;
+  margin: 9px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--ds-border);
+  color: var(--ds-muted);
+  font-size: 8px;
+}
+.book-tabs .active {
+  padding-bottom: 6px;
+  margin-bottom: -7px;
+  border-bottom: 2px solid var(--ds-teal);
+  color: var(--ds-teal-dark);
+  font-weight: 700;
+}
+.saved-card {
+  display: flex;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--ds-border);
+}
+.saved-card .copy { flex: 1; }
+.saved-card strong {
+  display: block;
+  margin: 2px 0 4px;
+  font: 700 10px/1.15 var(--serif);
+}
+.saved-card span {
+  color: var(--ds-muted);
+  font: 7px/1.35 var(--mono);
+}
+.bookmark-note {
+  margin-top: 9px;
+  padding: 9px;
+  border-radius: 9px;
+  background: var(--ds-oat);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+/* Handoff */
+.spec-table { font-size: 9px; }
+.spec-table td:first-child {
+  width: 22%;
+  color: var(--ds-teal-dark);
+  font-weight: 700;
+}
+.handoff-grid {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 14px;
+  margin-top: 13px;
+}
+.sheet-demo {
+  padding: 11px;
+  border: 1px solid var(--ds-border);
+  border-radius: 15px 15px 10px 10px;
+  background: #fffdfa;
+  box-shadow: 0 5px 14px rgba(44,42,40,.08);
+}
+.sheet-handle {
+  width: 32px;
+  height: 3px;
+  margin: 0 auto 9px;
+  border-radius: 9px;
+  background: #c7bfb4;
+}
+.sheet-demo h3 {
+  margin: 0 0 4px;
+  font: 700 16px/1.15 var(--serif);
+}
+.sheet-demo p {
+  margin: 0 0 8px;
+  color: var(--ds-muted);
+  font-size: 8px;
+  line-height: 1.4;
+}
+.field-demo {
+  margin: 6px 0;
+  padding: 7px 8px;
+  border: 1px solid var(--ds-border);
+  border-radius: 8px;
+  color: var(--ds-muted);
+  background: var(--ds-cream);
+  font-size: 8px;
+}
+.field-demo b { color: var(--ds-ink); }
+.sheet-submit {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  color: white;
+  background: var(--ds-teal);
+  text-align: center;
+  font-size: 8px;
+  font-weight: 700;
+}
+.check-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.check-list li {
+  position: relative;
+  padding: 0 0 8px 17px;
+  color: var(--ds-ink);
+  font-size: 9px;
+  line-height: 1.4;
+}
+.check-list li:before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--ds-success);
+  font-weight: 700;
+}
+.handoff-title {
+  margin: 0 0 8px;
+  color: var(--ds-teal-dark);
+  font: 700 9px/1.3 var(--mono);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+@page { size: A4; margin: 0; }
+
+@media print {
+  html, body { background: white; padding: 0; }
+  .page { margin: 0; box-shadow: none; }
+  a { color: inherit; text-decoration: none; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- 1 / COVER -->
+<section class="page cover">
+  <div class="cover-orb pink"></div>
+  <div class="cover-orb teal"></div>
+
+  <div class="cover-top">
+    <span>DishSwapp · Mobile design</span>
+    <span>Android-first · Proposal v1.0</span>
+  </div>
+
+  <div class="cover-main">
+    <div>
+      <p class="kicker">A mobile experience for the shared kitchen</p>
+      <h1>Mobile design<br><em>changes.</em></h1>
+      <p class="cover-dek">
+        An Android-first direction for finding, saving, swapping, and cooking
+        recipes together—grounded in the DishSwapp brand system.
+      </p>
+      <p class="cover-tagline">Collect, Collaborate, Cook.</p>
+      <p class="small-label">Brand palette · preserved</p>
+      <div class="swatches" aria-label="DishSwapp brand palette">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <div class="cover-device" aria-hidden="true">
+      <div class="cover-screen">
+        <div class="cover-status"><span>9:41</span><span>5G · 100%</span></div>
+        <div class="cover-bar">
+          <span>Dish<em>Swapp</em></span>
+          <span>⌕</span>
+        </div>
+        <div class="cover-preview-content">
+          <div class="small-label">Open-source recipes</div>
+          <h3>What sounds good?</h3>
+          <p>Collect, collaborate, cook.</p>
+          <div class="cover-preview-search">⌕ &nbsp; Search recipes or ingredients</div>
+          <div class="cover-preview-food"></div>
+          <div class="cover-preview-title">Grandma’s Sunday ragù</div>
+          <div class="cover-preview-meta">45 MIN · ITALIAN · ★ 4.8</div>
+        </div>
+        <div class="cover-preview-nav">
+          <span>⌂ Home</span><span>⌕ Search</span><span>▣ Cookbook</span><span>◯ Profile</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-meta">
+    <span>Prepared from the supplied DishSwapp Brand Book v2.0</span>
+    <span>Reference URL: dishswapp.pgmja.com</span>
+  </div>
+</section>
+
+<!-- 2 / DESIGN DIRECTION -->
+<section class="page">
+  <header class="page-head">
+    <p class="kicker">01 · Design direction</p>
+    <h2>Keep the brand. Change the mobile experience.</h2>
+    <p>A proposed Android-first app shell—not a rebrand and not a shrink-to-fit desktop page.</p>
+  </header>
+
+  <p style="font-size:13px;line-height:1.55;max-width:650px;margin:0 0 13px;">
+    DishSwapp should feel like a welcoming kitchen companion: easy to explore with one hand,
+    calm to read while cooking, and open to contributions from the community.
+  </p>
+
+  <div class="two-col">
+    <div class="panel keep">
+      <p class="small-label">Preserve</p>
+      <h3>The DishSwapp character</h3>
+      <ul>
+        <li>Brand colors: teal, peachy pink, spice, cream, oat, ink, muted, and border.</li>
+        <li>Playfair Display for recipe and editorial headlines.</li>
+        <li>Inter for Android UI, body copy, buttons, and captions.</li>
+        <li>JetBrains Mono for quantities, timers, ratings, and tracked labels.</li>
+        <li>Warm, open, generous language: “Cook,” “swap,” “save,” and “share.”</li>
+      </ul>
+    </div>
+    <div class="panel change">
+      <p class="small-label">Propose</p>
+      <h3>Mobile-first structure</h3>
+      <ul>
+        <li>Replace desktop-style navigation with four clear Android destinations.</li>
+        <li>Put recipe search and cuisine discovery near the top of Home.</li>
+        <li>Give recipe details a focused, sticky “Start cooking” action.</li>
+        <li>Use a distraction-light, one-step-at-a-time cooking mode.</li>
+        <li>Use Android-native back, sheets, touch feedback, and system insets.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="small-label" style="margin:16px 0 7px;">Primary mobile journeys</p>
+  <div class="journey-grid">
+    <div class="journey">
+      <b>01 · Discover</b>
+      <p>Browse cuisines, search ingredients, and open a recipe without navigating a desktop menu.</p>
+    </div>
+    <div class="journey">
+      <b>02 · Cook</b>
+      <p>Check ingredients, adjust servings, and move through clear, timed cooking steps.</p>
+    </div>
+    <div class="journey">
+      <b>03 · Contribute</b>
+      <p>Save a dish, share an ingredient swap, and credit the cook who tried it.</p>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:14px;">
+    <strong>Scope note.</strong> This proposal uses the Brand Book v2.0 text supplied in the conversation.
+    The live URL is included as reference, but this document is not a screenshot-based audit of the
+    production site. Confirm existing routes and behavior with maintainers before implementation.
+  </div>
+
+  <div class="footer"><span>DishSwapp · Android mobile proposal</span><span>02 / 07</span></div>
+</section>
+
+<!-- 3 / ANDROID SHELL + TOKENS -->
+<section class="page">
+  <header class="page-head">
+    <p class="kicker">02 · Android app shell</p>
+    <h2>Familiar Android behavior, DishSwapp color.</h2>
+    <p>Use Material 3 patterns, themed with the existing brand tokens rather than default system purple.</p>
+  </header>
+
+  <div class="shell-flow">
+    <div class="shell-step">Android status bar<br>& safe insets</div>
+    <span class="shell-arrow">→</span>
+    <div class="shell-step">Teal top app bar<br>56 dp target</div>
+    <span class="shell-arrow">→</span>
+    <div class="shell-step light">Scrollable recipe<br>content</div>
+    <span class="shell-arrow">→</span>
+    <div class="shell-step">Contextual action<br>or bottom navigation</div>
+  </div>
+
+  <div class="platform-grid">
+    <div>
+      <p class="small-label" style="margin:0 0 5px;">Platform rules</p>
+      <ul class="platform-list">
+        <li><span class="n">01</span><span><strong>Edge-to-edge:</strong> respect Android status-bar, gesture, keyboard, and cutout insets.</span></li>
+        <li><span class="n">02</span><span><strong>Top-level navigation:</strong> Home, Search, Cookbook, Profile in a persistent Material 3 navigation bar.</span></li>
+        <li><span class="n">03</span><span><strong>Deeper screens:</strong> use the system Back action; hide the top-level bar in Recipe Detail and Cooking Mode.</span></li>
+        <li><span class="n">04</span><span><strong>Native surfaces:</strong> use bottom sheets for filters, servings, and “Share a swap”; use snackbars for confirmation and Undo.</span></li>
+        <li><span class="n">05</span><span><strong>Touch:</strong> minimum 48 × 48 dp interactive targets, visible press states, and no hover-only actions.</span></li>
+        <li><span class="n">06</span><span><strong>Theme:</strong> seed Material 3 from DishSwapp tokens so dynamic system color does not replace the brand palette.</span></li>
+      </ul>
+    </div>
+
+    <div>
+      <p class="small-label" style="margin:0 0 5px;">Mobile color tokens</p>
+      <table class="token-table">
+        <thead><tr><th>Token</th><th>Hex</th><th>Mobile use</th></tr></thead>
+        <tbody>
+          <tr><td>Teal</td><td>#3D717C</td><td>App bars, primary controls, selected states</td></tr>
+          <tr><td>Pink</td><td>#F9B7A4</td><td>Warm accents and cuisine highlights</td></tr>
+          <tr><td>Spice</td><td>#E07A3B</td><td>One high-attention “cook” action</td></tr>
+          <tr><td>Cream</td><td>#FBF7F1</td><td>Main screen background</td></tr>
+          <tr><td>Oat</td><td>#EFE5D4</td><td>Cards, tips, gentle tonal surfaces</td></tr>
+          <tr><td>Ink</td><td>#2C2A28</td><td>Primary text and headings</td></tr>
+          <tr><td>Muted</td><td>#6B6661</td><td>Secondary text and metadata</td></tr>
+          <tr><td>Border</td><td>#E5DDD0</td><td>Dividers, card edges, field outlines</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="type-strip">
+    <div class="type-card">
+      <b>Playfair Display</b>
+      <p>Recipe titles and editorial headlines. On mobile, use about 26–30 sp for the main recipe title.</p>
+    </div>
+    <div class="type-card">
+      <b>Inter</b>
+      <p>Controls, navigation, body copy, and buttons. Keep reading text around 16 sp where space allows.</p>
+    </div>
+    <div class="type-card">
+      <b>JetBrains Mono</b>
+      <p>Quantities and timers with tabular figures; use for compact tracked labels, not body paragraphs.</p>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:13px;">
+    <strong>Contrast note.</strong> Keep small text off pink and spice surfaces. Reserve the spice CTA for its
+    large, bold action label; use teal with white text for standard-size primary buttons. Verify final
+    color pairs against WCAG AA in the implemented theme.
+  </div>
+
+  <div class="footer"><span>DishSwapp · Android mobile proposal</span><span>03 / 07</span></div>
+</section>
+
+<!-- 4 / HOME + SEARCH -->
+<section class="page">
+  <header class="page-head">
+    <p class="kicker">03 · Mockup examples</p>
+    <h2>Home and Search</h2>
+    <p>Examples at a conceptual 390 dp phone size. Mockup food artwork is a placeholder for warm, real contributor photography.</p>
+  </header>
+
+  <div class="mockup-grid">
+    <div>
+      <div class="device">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span class="right">5G · 100%</span></div>
+          <div class="appbar">
+            <span class="brand">Dish<span>Swapp</span></span>
+            <span class="actions">＋</span>
+          </div>
+          <div class="phone-content">
+            <p class="eyebrow">OPEN-SOURCE RECIPES</p>
+            <h3>What sounds good?</h3>
+            <p class="subline">Collect, collaborate, cook.</p>
+
+            <div class="mock-search">⌕ &nbsp; Search recipes or ingredients</div>
+
+            <div class="section-row"><span>Explore by cuisine</span><span>See all</span></div>
+            <div class="chiprail">
+              <span class="chip selected">All</span>
+              <span class="chip">Italian</span>
+              <span class="chip">Mexican</span>
+              <span class="chip">Asian</span>
+            </div>
+
+            <div class="food-photo">
+              <span class="plate"></span><span class="herb one"></span><span class="herb two"></span>
+              <span class="photo-label">PHOTO PLACEHOLDER</span>
+            </div>
+            <div class="feature-title">
+              <strong>Grandma’s Sunday ragù</strong><span style="color:var(--ds-teal);">♡</span>
+            </div>
+            <div class="feature-meta">45 MIN · ITALIAN · ★ 4.8</div>
+            <div class="feature-actions">Save for later · 12 swaps</div>
+
+            <div class="section-row"><span>Made for tonight</span><span>View more</span></div>
+            <div class="recipe-peek">
+              <div><strong>Cacio e Pepe</strong><span>20 min · Italian</span></div>
+              <span>›</span>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item active">
+              <span class="indicator"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg></span>Home
+            </div>
+            <div class="nav-item">
+              <span class="indicator"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></span>Search
+            </div>
+            <div class="nav-item">
+              <span class="indicator"><svg viewBox="0 0 24 24"><path d="M6 4h12v17l-6-4-6 4z"/></svg></span>Cookbook
+            </div>
+            <div class="nav-item">
+              <span class="indicator"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4 3.4-6 8-6s7.3 2 8 6"/></svg></span>Profile
+            </div>
+          </div>
+          <div class="gesture"><span></span></div>
+        </div>
+      </div>
+      <p class="mockup-caption">01 · Home · Explore and discover</p>
+    </div>
+
+    <div>
+      <div class="device">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span class="right">5G · 100%</span></div>
+          <div class="appbar">
+            <span class="title">Search</span>
+            <span class="actions">⋮</span>
+          </div>
+          <div class="phone-content">
+            <div class="mock-search">⌕ &nbsp; tomato <span style="margin-left:auto;">×</span></div>
+            <div class="filter-row">
+              <span class="filter-chip on">Under 30 min</span>
+              <span class="filter-chip">Vegetarian</span>
+              <span class="filter-chip">More filters</span>
+            </div>
+            <div class="result-count"><span>12 recipes</span><span>Sort · Relevance</span></div>
+
+            <div class="result">
+              <div class="food-photo thumb"><span class="plate"></span></div>
+              <div class="result-copy"><strong>Cacio e Pepe</strong><span>20 min · Italian · ★ 4.9</span></div>
+              <span class="save">♡</span>
+            </div>
+            <div class="result">
+              <div class="food-photo thumb" style="background:linear-gradient(125deg,#d5bd91,#927554);"><span class="plate"></span></div>
+              <div class="result-copy"><strong>Tinga de pollo</strong><span>50 min · Mexican · ★ 4.6</span></div>
+              <span class="save">♡</span>
+            </div>
+            <div class="result">
+              <div class="food-photo thumb" style="background:linear-gradient(125deg,#c9d9d7,#7f9897);"><span class="plate"></span></div>
+              <div class="result-copy"><strong>Maple glazed salmon</strong><span>25 min · Asian · ★ 4.7</span></div>
+              <span class="save">♡</span>
+            </div>
+            <div class="result">
+              <div class="food-photo thumb" style="background:linear-gradient(125deg,#efd6c5,#b98769);"><span class="plate"></span></div>
+              <div class="result-copy"><strong>Roasted tomato soup</strong><span>35 min · Vegetarian</span></div>
+              <span class="save">♡</span>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item">
+              <span class="indicator"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg></span>Home
+            </div>
+            <div class="nav-item active">
+              <span class="indicator"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></span>Search
+            </div>
+            <div class="nav-item">
+              <span class="indicator"><svg viewBox="0 0 24 24"><path d="M6 4h12v17l-6-4-6 4z"/></svg></span>Cookbook
+            </div>
+            <div class="nav-item">
+              <span class="indicator"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4 3.4-6 8-6s7.3 2 8 6"/></svg></span>Profile
+            </div>
+          </div>
+          <div class="gesture"><span></span></div>
+        </div>
+      </div>
+      <p class="mockup-caption">02 · Search · Filters and results</p>
+    </div>
+  </div>
+
+  <div class="page-note">
+    <b>Design changes:</b> Home makes search a first-class action, keeps cuisine chips horizontally scrollable,
+    and gives one recipe a clear editorial spotlight. Search keeps filters close to the query and uses compact,
+    scannable result cards. The four destinations stay consistent; an item’s save action has its own touch target.
+  </div>
+
+  <div class="footer"><span>DishSwapp · Android mobile proposal</span><span>04 / 07</span></div>
+</section>
+
+<!-- 5 / RECIPE DETAIL -->
+<section class="page">
+  <header class="page-head">
+    <p class="kicker">04 · Mockup example</p>
+    <h2>Recipe detail</h2>
+    <p>Keep the recipe readable, make quantities easy to scan, and make “Start cooking” the clear next action.</p>
+  </header>
+
+  <div style="display:grid;grid-template-columns:280px 1fr;gap:23px;align-items:start;">
+    <div>
+      <div class="device">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span class="right">5G · 100%</span></div>
+          <div class="appbar">
+            <span class="actions"><span class="back">‹</span></span>
+            <span class="title">Recipe</span>
+            <span class="actions">↗ &nbsp; ♡</span>
+          </div>
+          <div class="phone-content">
+            <div class="food-photo tall">
+              <span class="plate"></span><span class="herb one"></span><span class="herb two"></span>
+              <span class="photo-label">AUTHOR PHOTO</span>
+            </div>
+
+            <p class="detail-meta" style="margin:7px 0 0;">ITALIAN · 45 MIN · SERVES 6</p>
+            <h3 class="recipe-title">Grandma’s Sunday ragù</h3>
+            <p class="recipe-byline">by Patrizio · updated 3 days ago · 142 cooks tried this</p>
+
+            <div class="detail-heading"><span>INGREDIENTS · 7</span><span>Serves 6 · Adjust</span></div>
+            <div class="ingredient"><span class="mock-check"></span><span class="qty">400 g</span><span>beef chuck</span></div>
+            <div class="ingredient"><span class="mock-check"></span><span class="qty">200 g</span><span>pork shoulder</span></div>
+            <div class="ingredient"><span class="mock-check"></span><span class="qty">120 ml</span><span>whole milk</span></div>
+            <div style="margin:5px 0;color:var(--ds-teal);font-size:7px;font-weight:600;">+ 4 more ingredients</div>
+
+            <div class="detail-heading"><span>METHOD · 5 STEPS</span><span>View all</span></div>
+            <div class="step-preview"><span class="step-badge">1</span><span>Sweat the soffritto in olive oil, about 7 min.</span></div>
+            <div class="step-preview"><span class="step-badge">2</span><span>Brown the diced meat on all sides.</span></div>
+          </div>
+          <div class="sticky-cta">
+            <div class="save-button">♡</div>
+            <div class="spice-button">Start cooking</div>
+          </div>
+          <div class="gesture"><span></span></div>
+        </div>
+      </div>
+      <p class="mockup-caption">03 · Recipe detail</p>
+    </div>
+
+    <div>
+      <p class="small-label" style="margin:2px 0 8px;">What this screen changes</p>
+      <div class="panel" style="margin-bottom:9px;">
+        <h3>Cooking-first hierarchy</h3>
+        <ul>
+          <li>Show the dish, title, author, time, and servings before the long method.</li>
+          <li>Keep quantities in JetBrains Mono so the numbers scan quickly.</li>
+          <li>Use checkable ingredient rows with an explicit serving-size control.</li>
+          <li>Preview the first steps, then move into a dedicated cooking mode.</li>
+        </ul>
+      </div>
+
+      <div class="panel" style="margin-bottom:9px;">
+        <h3>Android action behavior</h3>
+        <ul>
+          <li>Use native Back to return to the previous screen and preserve the search position.</li>
+          <li>Keep the contextual bottom action above the Android gesture area.</li>
+          <li>Hide the top-level navigation bar here to avoid stacking it with the cooking action.</li>
+          <li>Make Save a separate, 48 dp touch target with a clear saved state.</li>
+        </ul>
+      </div>
+
+      <div class="note">
+        <strong>Spice CTA rule:</strong> Use the brand’s #E07A3B for the main “Start cooking” action on this
+        screen only. Pair it with a large, bold ink label; use teal buttons for standard-size actions.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><span>DishSwapp · Android mobile proposal</span><span>05 / 07</span></div>
+</section>
+
+<!-- 6 / COOK MODE + COOKBOOK -->
+<section class="page">
+  <header class="page-head">
+    <p class="kicker">05 · Mockup examples</p>
+    <h2>Cooking Mode and Cookbook</h2>
+    <p>Two distinct jobs: keep the cook focused on the next step; keep saved recipes easy to find again.</p>
+  </header>
+
+  <div class="mockup-grid">
+    <div>
+      <div class="device">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span class="right">5G · 100%</span></div>
+          <div class="appbar">
+            <span class="actions"><span class="back">‹</span></span>
+            <span class="title">Cooking mode</span>
+            <span class="actions">⋮</span>
+          </div>
+          <div class="phone-content">
+            <div class="progress-caption"><span>STEP 2 OF 5</span><span>RAGÙ · 45 MIN</span></div>
+            <div class="progress-track"><span></span></div>
+
+            <h3 class="cook-title">Build the soffritto</h3>
+            <p class="cook-instruction">
+              Add the onion, carrot, and celery to the pan. Stir gently in olive oil
+              until soft, about 7 minutes. Don’t brown.
+            </p>
+
+            <div class="timer-card">
+              <span class="small-label">Step timer</span>
+              <div class="timer-line">
+                <span class="timer-time">07:00</span>
+                <span class="timer-start">Start timer</span>
+              </div>
+            </div>
+
+            <div class="tip-box"><b>Kitchen note</b><br>Low heat gives the vegetables time to soften without browning.</div>
+
+            <div class="step-controls">
+              <span class="prev">Previous</span>
+              <span class="next">Next step →</span>
+            </div>
+          </div>
+          <div class="cook-footer">Screen awake · <b>Tap to turn off</b></div>
+          <div class="gesture"><span></span></div>
+        </div>
+      </div>
+      <p class="mockup-caption">04 · Cooking mode · One step at a time</p>
+    </div>
+
+    <div>
+      <div class="device">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span class="right">5G · 100%</span></div>
+          <div class="appbar">
+            <span class="title">Cookbook</span>
+            <span class="actions">＋</span>
+          </div>
+          <div class="phone-content">
+            <h3 class="cookbook-intro">Your kitchen,<br>our cookbook.
+              <span>Recipes you’ve saved and swaps you’ve tried.</span>
+            </h3>
+            <div class="book-tabs">
+              <span class="active">Saved</span><span>My recipes</span><span>Swaps</span>
+            </div>
+
+            <div class="saved-card">
+              <div class="food-photo thumb"><span class="plate"></span></div>
+              <div class="copy">
+                <strong>Grandma’s Sunday ragù</strong>
+                <span>45 min · Italian · Saved today</span>
+              </div>
+              <span style="color:var(--ds-teal);">▣</span>
+            </div>
+
+            <div class="saved-card">
+              <div class="food-photo thumb" style="background:linear-gradient(125deg,#d5bd91,#927554);"><span class="plate"></span></div>
+              <div class="copy">
+                <strong>Tinga de pollo</strong>
+                <span>50 min · Mexican · 3 swaps</span>
+              </div>
+              <span style="color:var(--ds-teal);">▣</span>
+            </div>
+
+            <div class="bookmark-note">
+              <b style="color:var(--ds-teal-dark);">Your cookbook, your way.</b><br>
+              Keep saved recipes, your own dishes, and community swaps together.
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item">
+              <span class="indicator"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg></span>Home
+            </div>
+            <div class="nav-item">
+              <span class="indicator"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></span>Search
+            </div>
+            <div class="nav-item active">
+              <span class="indicator"><svg viewBox="0 0 24 24"><path d="M6 4h12v17l-6-4-6 4z"/></svg></span>Cookbook
+            </div>
+            <div class="nav-item">
+              <span class="indicator"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4 3.4-6 8-6s7.3 2 8 6"/></svg></span>Profile
+            </div>
+          </div>
+          <div class="gesture"><span></span></div>
+        </div>
+      </div>
+      <p class="mockup-caption">05 · Cookbook · Saved recipes and swaps</p>
+    </div>
+  </div>
+
+  <div class="page-note">
+    <b>Cooking Mode:</b> use one clear instruction, visible progress, and an optional timer. Keep the screen
+    awake only while the user chooses that behavior; respect Android Back and accessibility services.
+    <b>Cookbook:</b> retain the four main destinations and use sub-tabs for Saved, My recipes, and Swaps.
+  </div>
+
+  <div class="footer"><span>DishSwapp · Android mobile proposal</span><span>06 / 07</span></div>
+</section>
+
+<!-- 7 / COMPONENTS + HANDOFF -->
+<section class="page">
+  <header class="page-head">
+    <p class="kicker">06 · Interaction and handoff</p>
+    <h2>Components that feel at home on Android.</h2>
+    <p>Design the states, tap targets, and feedback—not just the resting mockup.</p>
+  </header>
+
+  <table class="spec-table">
+    <thead><tr><th>Component</th><th>Proposed Android behavior</th><th>DishSwapp styling</th></tr></thead>
+    <tbody>
+      <tr><td>Top app bar</td><td>56 dp; title and contextual actions; Back on deeper screens.</td><td>Teal surface, white controls; use the official wordmark asset.</td></tr>
+      <tr><td>Navigation bar</td><td>Home, Search, Cookbook, Profile. Preserve each destination’s state.</td><td>Warm surface, teal selected indicator, 48 dp minimum targets.</td></tr>
+      <tr><td>Recipe card</td><td>Card opens the recipe; Save has its own clearly separated hit target.</td><td>Warm author photo, subtle border, Playfair title, Inter metadata.</td></tr>
+      <tr><td>Search filters</td><td>Selectable filter chips; advanced filters open in a modal bottom sheet.</td><td>Teal selected state; pink/oat accents used sparingly.</td></tr>
+      <tr><td>Ingredient row</td><td>Checkable row; servings control opens a sheet; quantities remain aligned.</td><td>JetBrains Mono quantities; teal check state; warm dividers.</td></tr>
+      <tr><td>Cooking action</td><td>Sticky action on Recipe Detail; open a focused step-by-step screen.</td><td>One spice CTA on Recipe Detail; teal for ordinary actions.</td></tr>
+      <tr><td>Feedback</td><td>Snackbar after Save or Share a swap; include Undo where it is safe.</td><td>Short, friendly copy: “Saved to your cookbook.”</td></tr>
+    </tbody>
+  </table>
+
+  <div class="handoff-grid">
+    <div>
+      <p class="handoff-title">Example · Share a swap bottom sheet</p>
+      <div class="sheet-demo">
+        <div class="sheet-handle"></div>
+        <h3>Share a swap</h3>
+        <p>Tell the community what you tried. Credit the recipe and keep it helpful.</p>
+        <div class="field-demo"><b>Instead of</b> &nbsp; beef</div>
+        <div class="field-demo"><b>I used</b> &nbsp; lentils</div>
+        <div class="field-demo"><b>What changed?</b> &nbsp; It worked well after simmering…</div>
+        <div class="sheet-submit">Share swap</div>
+      </div>
+    </div>
+    <div>
+      <p class="handoff-title">Implementation checklist</p>
+      <ul class="check-list">
+        <li>Use Material 3 components in Compose, themed with the supplied tokens.</li>
+        <li>Bundle or load Playfair Display, Inter, and JetBrains Mono reliably.</li>
+        <li>Use the approved logo asset; mockup wordmarks are text stand-ins.</li>
+        <li>Replace illustrated food blocks with approved contributor photography.</li>
+        <li>Test 360–430 dp phone widths and smaller-screen fallbacks.</li>
+        <li>Test TalkBack labels, font scaling, keyboard overlap, and system Back.</li>
+        <li>Keep text contrast at WCAG AA; don’t place small copy on pink or spice.</li>
+        <li>Apply the brand-book dark neutral tokens when dark mode is supported.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:13px;">
+    <strong>Suggested build order:</strong> wire brand tokens and fonts → build the app shell and navigation →
+    create the recipe card and Search → implement Recipe Detail and Cooking Mode → add Cookbook and the
+    contribution bottom sheets → verify Android accessibility and system insets.
+  </div>
+
+  <div class="footer"><span>DishSwapp · Android mobile proposal</span><span>07 / 07</span></div>
+</section>
+
+</body>
+</html>

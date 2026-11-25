@@ -130,3 +130,41 @@ textarea {
     padding-block: 40px;
   }
 }
+
+/* =================================
+   APP MODE SPECIFIC STYLES (BRAND V2.0)
+================================= */
+
+html.app-mode {
+  /* Disable pull-to-refresh and tap highlight */
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.app-mode body {
+  background-color: var(--ds-cream); /* 60% canvas */
+}
+
+/* Touch & Interaction Behavior */
+html.app-mode button,
+html.app-mode .btn,
+html.app-mode .action-button,
+html.app-mode .recipe-card {
+  transition: background-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+}
+
+html.app-mode .recipe-card:active {
+  box-shadow: none !important;
+  transform: translateY(0) !important;
+  background-color: #EFE5D4; /* Oat tint */
+}
+
+html.app-mode button:active,
+html.app-mode .btn:active {
+  background-color: #EFE5D4;
+}
+
+/* Ensure safe area spacing is respected globally in app mode */
+html.app-mode {
+  padding-top: env(safe-area-inset-top, 0px);
+}
