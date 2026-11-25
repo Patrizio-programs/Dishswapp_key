@@ -9,8 +9,8 @@ const searchIsCurrent = path === '/recipes' || path.startsWith('/recipes/');
 // Route classification: top-level routes don't start with /recipes, /submit-recipe, /edit, /login
 const isTopLevel = !path.startsWith('/recipes') && !path.startsWith('/submit-recipe') && !path.startsWith('/edit') && !path.startsWith('/login') && path !== '/';
 
-// The mobile tab bar should show on all top-level routes INCLUDING home (/).
-const showMobileTabBar = !path.startsWith('/recipes') && !path.startsWith('/submit-recipe') && !path.startsWith('/edit') && !path.startsWith('/login');
+// Keep the mobile tab bar available on the submit flow as well.
+const showMobileTabBar = !path.startsWith('/recipes') && !path.startsWith('/edit') && !path.startsWith('/login');
 const isFlow = path.startsWith('/recipes') || path.startsWith('/submit-recipe') || path.startsWith('/edit') || path.startsWith('/login');
 const isLogin = path === '/login' || path.startsWith('/login/');
 
