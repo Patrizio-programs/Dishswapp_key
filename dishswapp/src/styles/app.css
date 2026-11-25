@@ -1,0 +1,151 @@
+html.app-mode {
+  --app-header-h: 42px;
+  --app-tabbar-h: 52px;
+  --app-motion: 200ms;
+  --app-bar-blur: rgba(251, 247, 241, 0.98);
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.app-mode .custom-navbar:not(.d-none) {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1060;
+  height: calc(var(--app-header-h) + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) 0 0 !important;
+  background-color: var(--ds-teal);
+}
+
+html.app-mode .custom-navbar:not(.d-none) .container-fluid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--app-header-h);
+}
+
+html.app-mode .custom-navbar:not(.d-none) .navbar-brand img {
+  width: 120px;
+}
+
+html.app-mode .custom-navbar:not(.d-none) .navbar-toggler,
+html.app-mode .custom-navbar:not(.d-none) .navbar-nav {
+  display: none !important;
+}
+
+html.app-mode .custom-navbar:not(.d-none) .navbar-collapse {
+  display: flex !important;
+  flex: 0 0 auto;
+  width: auto;
+}
+
+html.app-mode .custom-navbar:not(.d-none) .navbar-collapse > .d-flex {
+  margin-left: auto;
+  padding-top: 0 !important;
+}
+
+html.app-mode .app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1060;
+  height: calc(var(--app-header-h) + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) 16px 0;
+  background-color: var(--ds-teal);
+  color: var(--ds-white);
+  transition: background-color var(--app-motion) ease;
+}
+
+html.app-mode .app-header .navbar-brand img {
+  display: block;
+  width: 120px;
+  height: auto;
+}
+
+html.app-mode .app-account {
+  display: flex;
+  align-items: center;
+}
+
+html.app-mode .app-header .btn-auth {
+  min-height: 36px;
+  background: var(--ds-pink);
+  color: var(--ds-dark);
+  border: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+html.app-mode body:has(.app-header, .custom-navbar:not(.d-none)) {
+  padding-top: calc(var(--app-header-h) + env(safe-area-inset-top, 0px));
+}
+
+html.app-mode .app-flow-bar {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 1060;
+  min-height: var(--app-header-h);
+  padding: 0 16px;
+  background: var(--ds-white);
+  border-bottom: 1px solid var(--ds-border);
+  color: var(--ds-dark);
+}
+
+html.app-mode .mobile-tab-bar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 1050;
+  height: calc(var(--app-tabbar-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--app-bar-blur);
+  border-top: 1px solid var(--ds-border);
+  box-shadow: 0 -1px 2px rgba(44, 42, 40, 0.06);
+  transition: background-color var(--app-motion) ease;
+}
+
+html.app-mode .mobile-tab-bar a {
+  min-height: 52px;
+  color: var(--ds-muted);
+}
+
+html.app-mode .mobile-tab-bar a[aria-current='page'] {
+  color: var(--ds-teal);
+}
+
+html.app-mode body:has(.mobile-tab-bar) {
+  padding-bottom: calc(var(--app-tabbar-h) + env(safe-area-inset-bottom, 0px));
+}
+
+html.app-mode body {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  overscroll-behavior-y: none;
+}
+
+html.app-mode header,
+html.app-mode nav,
+html.app-mode footer {
+  user-select: auto;
+}
+
+html.app-mode .app-header,
+html.app-mode .app-flow-bar,
+html.app-mode .mobile-tab-bar {
+  transition:
+    background-color var(--app-motion) ease,
+    color var(--app-motion) ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.app-mode .app-header,
+  html.app-mode .app-flow-bar,
+  html.app-mode .mobile-tab-bar {
+    transition: none;
+  }
+}

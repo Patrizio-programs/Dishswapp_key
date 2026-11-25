@@ -7,13 +7,19 @@
   /* Brand colours */
   --ds-cream: #FBF7F1;
   --ds-teal: #3D717C;
+  --ds-teal-dark: #2A535C;
+  --ds-teal-light: #5A8E97;
+  --ds-teal-tint: #E5EDEF;
   --ds-pink: #F9B7A4;
+  --ds-pink-soft: #FCE6DD;
   --ds-spice: #E07A3B;
+  --ds-spice-soft: #F6E0CB;
 
   /* Supporting colours */
-  --ds-dark: #2C3435;
-  --ds-muted: #777C79;
-  --ds-border: #E8E0D7;
+  --ds-dark: #2C2A28;
+  --ds-muted: #6B6661;
+  --ds-border: #E5DDD0;
+  --ds-oat: #EFE5D4;
   --ds-white: #FFFFFF;
 
   /* Typography */
@@ -22,12 +28,17 @@
   --ds-mono-font: 'JetBrains Mono', monospace;
 
   /* Layout */
-  --ds-container-width: 1200px;
+  --ds-container-width: 1320px;
 
   /* Rounded corners */
-  --ds-radius-sm: 8px;
-  --ds-radius-md: 14px;
-  --ds-radius-lg: 20px;
+  --ds-radius-sm: 4px;
+  --ds-radius-md: 10px;
+  --ds-radius-lg: 18px;
+
+  /* Elevation */
+  --ds-shadow-sm: 0 1px 2px rgba(44, 42, 40, 0.06);
+  --ds-shadow-md: 0 4px 12px rgba(44, 42, 40, 0.08);
+  --ds-shadow-lg: 0 12px 32px rgba(44, 42, 40, 0.12);
 }
 
 /* =================================
@@ -51,6 +62,10 @@ body {
   line-height: 1.6;
 }
 
+.custom-navbar {
+  background-color: var(--ds-teal);
+}
+
 /* =================================
    TYPOGRAPHY
 ================================= */
@@ -64,6 +79,22 @@ h6 {
   font-family: var(--ds-heading-font);
   color: var(--ds-dark);
   line-height: 1.2;
+  font-weight: 700;
+}
+
+h1 {
+  font-size: clamp(2rem, 3.34vw, 3rem);
+  line-height: 1.17;
+}
+
+h2 {
+  font-size: 2rem;
+  line-height: 1.125;
+}
+
+h3 {
+  font-size: 1.375rem;
+  line-height: 1.27;
 }
 
 p {
@@ -72,11 +103,11 @@ p {
 
 a {
   color: var(--ds-teal);
-  text-decoration: none;
+  text-underline-offset: 0.18em;
 }
 
 a:hover {
-  color: var(--ds-spice);
+  color: var(--ds-teal-dark);
 }
 
 button,
@@ -91,7 +122,7 @@ textarea {
 ================================= */
 
 .ds-container {
-  width: min(100% - 40px, var(--ds-container-width));
+  width: min(100% - 24px, var(--ds-container-width));
   margin-inline: auto;
 }
 
@@ -110,19 +141,150 @@ textarea {
 .ds-button-primary {
   display: inline-block;
   padding: 12px 24px;
-  background: var(--ds-spice);
+  background: var(--ds-teal);
   color: var(--ds-white);
   border: none;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-md);
   font-weight: 600;
   text-decoration: none;
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .ds-button-primary:hover {
-  background: #C96832;
+  background: var(--ds-teal-dark);
   color: var(--ds-white);
   transform: translateY(-2px);
+}
+
+.custom-navbar {
+  position: relative;
+  z-index: 1030;
+}
+
+.custom-navbar .navbar-brand img {
+  display: block;
+  height: auto;
+  max-width: min(200px, 52vw);
+}
+
+.app-header {
+  display: none;
+}
+
+.custom-navbar .nav-link {
+  color: var(--ds-white) !important;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.custom-navbar .nav-link:hover,
+.custom-navbar .nav-link:focus-visible,
+.custom-navbar .nav-link[aria-current='page'] {
+  color: var(--ds-white) !important;
+}
+
+.custom-navbar .nav-link[aria-current='page'] {
+  text-decoration: underline;
+  text-decoration-color: var(--ds-pink);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.45rem;
+}
+
+.custom-navbar .btn-auth {
+  background: var(--ds-pink);
+  color: var(--ds-dark);
+  border: 0;
+  font-size: 0.9375rem;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.custom-navbar .btn-auth:hover {
+  background: var(--ds-pink-soft);
+  color: var(--ds-dark);
+  transform: translateY(-1px);
+}
+
+.custom-navbar .navbar-toggler-icon {
+  filter: brightness(0) invert(1);
+}
+
+.mobile-tab-bar {
+  display: none;
+}
+
+@media (max-width: 991.98px) {
+  .custom-navbar {
+    padding-block: 0.5rem !important;
+  }
+
+  .custom-navbar .navbar-brand img {
+    max-width: min(160px, 44vw);
+  }
+
+  .custom-navbar .navbar-nav {
+    align-items: center;
+  }
+
+  .mobile-tab-bar {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 1050;
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(251, 247, 241, 0.98);
+    border-top: 1px solid var(--ds-border);
+    box-shadow: 0 -1px 2px rgba(44, 42, 40, 0.06);
+  }
+
+  .mobile-tab-bar a {
+    display: flex;
+    min-width: 0;
+    min-height: 52px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--ds-muted);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1.15;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-tab-bar a i {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    place-items: center;
+    font-size: 1.25rem;
+  }
+
+  .mobile-tab-bar a[aria-current='page'] {
+    color: var(--ds-teal);
+    font-weight: 700;
+  }
+
+  .mobile-tab-bar a:nth-child(3) i {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--ds-spice);
+    color: var(--ds-dark);
+    font-size: 1rem;
+  }
+
+  body:has(.mobile-tab-bar) {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -156,15 +318,42 @@ html.app-mode .recipe-card {
 html.app-mode .recipe-card:active {
   box-shadow: none !important;
   transform: translateY(0) !important;
-  background-color: #EFE5D4; /* Oat tint */
+  background-color: var(--ds-oat);
 }
 
 html.app-mode button:active,
 html.app-mode .btn:active {
-  background-color: #EFE5D4;
+  background-color: var(--ds-oat);
 }
 
-/* Ensure safe area spacing is respected globally in app mode */
-html.app-mode {
-  padding-top: env(safe-area-inset-top, 0px);
+@media (max-width: 991.98px) {
+  .app-flow-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 1060;
+    min-height: 42px;
+    padding: 0 16px;
+    background: var(--ds-white);
+    border-bottom: 1px solid var(--ds-border);
+  }
+
+  .app-back-btn {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    color: var(--ds-dark);
+    font-size: 1.25rem;
+    text-decoration: none;
+  }
+
+  .app-flow-title {
+    color: var(--ds-dark);
+    font-family: var(--ds-heading-font);
+    font-size: 1rem;
+    font-weight: 700;
+  }
 }

@@ -105,6 +105,7 @@ const displayDifficulty =
     border-radius: var(--ds-radius-md);
     color: var(--ds-dark);
     text-decoration: none;
+    box-shadow: var(--ds-shadow-sm);
     transition:
       transform 0.2s ease,
       box-shadow 0.2s ease,
@@ -113,9 +114,9 @@ const displayDifficulty =
 
   .recipe-card:hover {
     color: var(--ds-dark);
-    transform: translateY(-4px);
-    border-color: var(--ds-pink);
-    box-shadow: 0 10px 25px rgba(44, 52, 53, 0.09);
+    transform: translateY(-2px);
+    border-color: var(--ds-border);
+    box-shadow: var(--ds-shadow-md);
   }
 
   .recipe-card__image-wrapper {
@@ -130,11 +131,11 @@ const displayDifficulty =
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.3s ease;
+    transition: transform 0.2s ease;
   }
 
   .recipe-card:hover .recipe-card__image {
-    transform: scale(1.04);
+    transform: scale(1.03);
   }
 
   .recipe-card__placeholder {
@@ -142,11 +143,7 @@ const displayDifficulty =
     height: 100%;
     display: grid;
     place-items: center;
-    background: linear-gradient(
-      135deg,
-      var(--ds-teal),
-      #7D9B96
-    );
+    background: linear-gradient(135deg, var(--ds-teal), var(--ds-teal-light));
     color: white;
     font-family: var(--ds-heading-font);
     font-size: 1.5rem;
@@ -166,8 +163,8 @@ const displayDifficulty =
   }
 
   .recipe-card__tag {
-    background: #E8F0EE;
-    color: var(--ds-teal);
+    background: var(--ds-pink-soft);
+    color: var(--ds-dark);
     padding: 4px 10px;
     border-radius: 999px;
     font-size: 0.75rem;
@@ -176,7 +173,7 @@ const displayDifficulty =
   }
 
   .recipe-card__time {
-    color: var(--ds-muted);
+    color: var(--ds-teal);
     font-size: 0.8rem;
   }
 

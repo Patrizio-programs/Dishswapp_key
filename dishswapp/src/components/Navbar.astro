@@ -1,15 +1,32 @@
 ---
-// Astro frontmatter
-import { Show, UserButton} from "@clerk/astro/components"
 
-// Mark the link for the current page (underline stays on, read out as "current page").
+import { Show, UserButton } from "@clerk/astro/components"
+
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
-const current = (href: string) =>
-  path === href || path.startsWith(href + '/') ? 'page' : undefined;
-const searchIsCurrent = path.startsWith('/recipes') || path.startsWith('/cuisine');
+const current = (href: string) => path === href || (href !== '/' && path.startsWith(`${href}/`)) ? 'page' : undefined;
+const searchIsCurrent = path === '/recipes' || path.startsWith('/recipes/');
+
+// Route classification: top-level routes don't start with /recipes, /submit-recipe, /edit, /login
+const isTopLevel = !path.startsWith('/recipes') && !path.startsWith('/submit-recipe') && !path.startsWith('/edit') && !path.startsWith('/login') && path !== '/';
+const isFlow = path.startsWith('/recipes') || path.startsWith('/submit-recipe') || path.startsWith('/edit') || path.startsWith('/login');
+const isLogin = path === '/login' || path.startsWith('/login/');
+
+// Desktop navbar links — visible in browser mode
+const navLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/about', label: 'About' },
+  { href: '/donate', label: 'Donate' },
+];
+
+// Flow route links that appear in the app navbar
+const flowLinks = [
+  { href: '/recipes', label: 'Recipes' },
+  { href: '/cookbook', label: 'Cookbook' },
+  { href: '/dashboard', label: 'Profile' },
+];
 ---
 
-<nav class="navbar navbar-expand-lg custom-navbar py-3">
+<nav class={`navbar navbar-expand-lg custom-navbar py-3 ${path === '/' ? '' : 'd-none d-lg-flex'}`}>
   <div class="container-fluid px-4">
     <!-- Brand Logo / Name -->
     <a class="navbar-brand d-flex align-items-center me-auto" href="/">
@@ -33,33 +50,31 @@ const searchIsCurrent = path.startsWith('/recipes') || path.startsWith('/cuisine
     <div class="collapse navbar-collapse" id="navbarContent">
       <!-- Centered Navigation Links -->
       <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-3 text-center text-lg-start">
-        <li class="nav-item">
-          <a class="nav-link text-white-50 text-white-hover px-3" href="/dashboard" aria-current={current("/dashboard")}>Dashboard</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white-50 text-white-hover px-3" href="/about" aria-current={current("/about")}>About</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white-50 text-white-hover px-3" href="/donate">Donate</a>
-        </li>
+        {navLinks.map((link) => (
+          <li class="nav-item">
+            <a class="nav-link text-white-50 text-white-hover px-3" href={link.href} aria-current={current(link.href)}>{link.label}</a>
+          </li>
+        ))}
       </ul>
 
       <!-- Right Action Button -->
       <div class="d-flex justify-content-center pt-2 pt-lg-0 ms-lg-auto">
-         <Show when="signed-out"> 
+         <Show when="signed-out">
         <a href="/login" class="btn btn-auth rounded-pill px-4 py-2 fw-semibold">
           Login / Sign up
         </a>
         </Show>
         <Show when="signed-in">
         <UserButton />
-      </Show>
+        </Show>
       </div>
     </div>
   </div>
 </nav>
 
-<header class="app-header">
+<!-- App header: shown only on top-level routes in app mode -->
+{isTopLevel && (
+<header class="app-header d-lg-none" aria-label="App header">
   <a class="navbar-brand" href="/">
     <img src="/img/dishswapp-wordmark-on-dark.png" width="120px" alt="DishSwapp" />
   </a>
@@ -72,13 +87,19 @@ const searchIsCurrent = path.startsWith('/recipes') || path.startsWith('/cuisine
     </Show>
   </div>
 </header>
+)}
 
-<div class="app-flow-bar">
+<!-- App flow bar: shown only on flow routes in app mode, not on login -->
+{isFlow && !isLogin && (
+<div class="app-flow-bar d-lg-none" aria-label="App flow-bar">
   <a href="javascript:history.back()" class="app-back-btn"><i class="bi bi-arrow-left"></i></a>
   <span class="app-flow-title">Back</span>
 </div>
+)}
 
-<nav class="mobile-tab-bar" aria-label="Main mobile navigation">
+<!-- Mobile tab bar: shown only on top-level routes in app mode -->
+{isTopLevel && (
+<nav class="mobile-tab-bar d-lg-none" aria-label="Main mobile navigation">
   <a href="/" aria-current={current('/')}>
     <i class="bi bi-house" aria-hidden="true"></i><span>Home</span>
   </a>
@@ -95,214 +116,4 @@ const searchIsCurrent = path.startsWith('/recipes') || path.startsWith('/cuisine
     <i class="bi bi-person" aria-hidden="true"></i><span>Profile</span>
   </a>
 </nav>
-
-<style>
-  /* Custom color variables based on the image */
-  :root {
-    --nav-bg: #3d717c;
-    --btn-bg: #f9b7a4;
-    --btn-text: #2c2a28;
-    --btn-bg-hover: #fce6dd; /* brand "pink-soft" */
-  }
-
-  /* Navbar background */
-  .custom-navbar {
-    background-color: var(--nav-bg);
-  }
-
-  /* Brand Typography */
-  .brand-dish {
-    font-family: serif;
-    font-weight: 800;
-    font-size: 1.6rem;
-    color: #ffffff;
-    letter-spacing: 0.5px;
-  }
-
-  .brand-swapp {
-    font-family: 'Georgia', 'Times New Roman', serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 1.6rem;
-    color: var(--btn-bg);
-  }
-
-  /* Navigation links
-     Hover: text goes to full white and a pink underline grows out from the
-     centre. The current page keeps the underline, so hover and "you are here"
-     speak the same language. */
-  .nav-link {
-    position: relative;
-    font-weight: 400;
-    font-size: 1rem;
-    color: rgba(255, 255, 255, 0.85) !important;
-    transition: color 0.2s ease;
-  }
-
-  .nav-link::after {
-    content: '';
-    position: absolute;
-    left: 1rem;   /* matches the px-3 padding, so the line is exactly as wide as the text */
-    right: 1rem;
-    bottom: 0.2rem;
-    height: 2px;
-    border-radius: 2px;
-    background-color: var(--btn-bg);
-    transform: scaleX(0);
-    transform-origin: center;
-    transition: transform 0.25s ease;
-  }
-
-  .nav-link:hover,
-  .nav-link:focus-visible,
-  .nav-link[aria-current='page'] {
-    color: #ffffff !important;
-  }
-
-  .nav-link:hover::after,
-  .nav-link:focus-visible::after,
-  .nav-link[aria-current='page']::after {
-    transform: scaleX(1);
-  }
-
-  .nav-link:focus-visible {
-    outline: 2px solid #ffffff;
-    outline-offset: 2px;
-    border-radius: 6px;
-  }
-
-  /* Login / Sign up pill
-     Hover: softens to the lighter brand pink, lifts 1px, picks up a soft
-     shadow. Press: drops back down. Keyboard focus gets a white ring. */
-  .btn-auth {
-    background-color: var(--btn-bg);
-    color: var(--btn-text);
-    border: none;
-    font-size: 0.95rem;
-    transition:
-      background-color 0.2s ease,
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
-  }
-
-  .btn-auth:hover {
-    background-color: var(--btn-bg-hover);
-    color: var(--btn-text);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(44, 42, 40, 0.25);
-  }
-
-  .btn-auth:active {
-    background-color: var(--btn-bg-hover);
-    color: var(--btn-text);
-    transform: translateY(0);
-    box-shadow: none;
-  }
-
-  .btn-auth:focus-visible {
-    outline: 2px solid #ffffff;
-    outline-offset: 3px;
-    box-shadow: none;
-  }
-
-  /* Mobile menu: links are stacked and centred, so shrink each one to its
-     text; that way the underline hugs the word instead of spanning the row. */
-  @media (max-width: 991.98px) {
-    .custom-navbar .navbar-nav {
-      align-items: center;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .nav-link,
-    .nav-link::after,
-    .btn-auth {
-      transition: none;
-    }
-
-    .btn-auth:hover {
-      transform: none;
-    }
-  }
-
-  /* Desktop: centre the links on the NAV itself, not in the leftover space
-     between the logo and the right-hand button. The logo is a fixed 200px
-     while the right side changes width (login button vs. user avatar), so
-     auto margins made the links drift. Absolute centring ignores both. */
-  @media (min-width: 992px) {
-    .custom-navbar .container-fluid {
-      position: relative;
-    }
-
-    .custom-navbar .navbar-nav {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      margin: 0 !important;
-    }
-  }
-
-  /* App Mode Styles */
-  :global(html.app-mode) .custom-navbar {
-    display: none;
-  }
-
-  :global(html.app-mode) .app-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 16px;
-    background-color: var(--nav-bg);
-    color: white;
-  }
-
-  .app-header { display: none; }
-
-  :global(html.app-mode) .mobile-tab-bar {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1050;
-    background: rgba(251, 247, 241, 0.98);
-    border-top: 1px solid var(--ds-border);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-
-  :global(html.app-mode) body {
-    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .app-flow-bar {
-    display: none;
-  }
-
-  /* Hide the mobile tab bar on desktop; it's only shown inside app mode
-     (mobile WebView) via the :global(html.app-mode) rule below. */
-  .mobile-tab-bar {
-    display: none;
-  }
-
-  :global(html.app-mode) .app-flow-bar {
-    display: flex !important;
-    align-items: center;
-    gap: 15px;
-    padding: 10px 16px;
-    background: var(--ds-cream);
-    border-bottom: 1px solid var(--ds-border);
-  }
-
-  .app-back-btn {
-    color: var(--ds-teal);
-    font-size: 1.2rem;
-    text-decoration: none;
-  }
-
-  /* Custom icon filter for Bootstrap navbar-toggler icon on teal background */
-  .navbar-toggler-icon {
-    filter: invert(1);
-  }
-</style>
+)}

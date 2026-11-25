@@ -58,24 +58,16 @@ const accent = words[words.length - 1];
 
 <style>
   .ds-hero {
-    /* Gradient stops sampled from the mockup.
-       Brand pink (#F9B7A4) and spice (#E07A3B) come from tokens.css (§19). */
-    --hero-sage: #9fa9a0;
-    --hero-cream: #e5e3de;
-    --hero-peach: #f2b7a4;
-    --hero-pink: #f9b7a4;
-    --hero-spice: #e07a3b;
-
     background: linear-gradient(
       115deg,
-      var(--hero-sage) 0%,
-      var(--hero-cream) 40%,
-      var(--hero-peach) 100%
+      var(--ds-teal-dark) 0%,
+      var(--ds-teal) 58%,
+      var(--ds-teal-light) 100%
     );
-    min-height: 500px;
+    min-height: clamp(440px, 52vw, 660px);
     display: flex;
     align-items: center;
-    padding: 5rem 0;
+    padding: 4rem 0;
     font-family: 'Inter', system-ui, sans-serif;
   }
 
@@ -88,8 +80,8 @@ const accent = words[words.length - 1];
     width: 400px;
     height: 400px;
     border-radius: 50%;
-    background: var(--hero-pink);
-    opacity: 0.92;
+    background: var(--ds-pink);
+    opacity: 0.9;
     pointer-events: none;
   }
 
@@ -107,7 +99,7 @@ const accent = words[words.length - 1];
     font-size: 0.8125rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #ffffff;
+    color: var(--ds-white);
     margin: 0 0 1.25rem;
     text-shadow: 0 1px 2px rgba(44, 42, 40, 0.15);
   }
@@ -118,28 +110,28 @@ const accent = words[words.length - 1];
     font-weight: 700;
     font-size: clamp(2.5rem, 6vw, 4rem);
     line-height: 1.05;
-    color: #ffffff;
+    color: var(--ds-white);
     margin: 0 0 2.25rem;
     letter-spacing: -0.01em;
     text-shadow: 0 2px 8px rgba(44, 42, 40, 0.12);
   }
 
-  /* "cook." — pink italic accent (mirrors the wordmark's pink "Swapp", §04) */
+  /* The pink accent mirrors the wordmark's "Swapp". */
   .ds-hero__title-accent {
     font-style: italic;
     font-weight: 700;
-    color: var(--hero-pink);
+    color: var(--ds-pink);
     text-shadow: 0 1px 6px rgba(44, 42, 40, 0.18);
   }
 
-  /* CTA — spice orange, pill, the only spice element on the page (§16 note 3) */
+  /* The single spice accent on the home page. */
   .ds-hero__cta {
-    background-color: var(--hero-spice);
-    color: #ffffff;
+    background-color: var(--ds-spice);
+    color: var(--ds-dark);
     font-weight: 600;
     font-size: 1rem;
     padding: 0.7rem 1.85rem;
-    border-radius: 999px;
+    border-radius: var(--ds-radius-md);
     border: none;
     box-shadow: 0 4px 12px rgba(44, 42, 40, 0.12);
     transition: background-color 0.2s ease, transform 0.15s ease,
@@ -148,43 +140,63 @@ const accent = words[words.length - 1];
     display: inline-block;
   }
   .ds-hero__cta:hover,
-  .ds-hero__cta:focus {
-    background-color: #c96a32;
-    color: #ffffff;
+  .ds-hero__cta:focus-visible {
+    background-color: var(--ds-teal-dark);
+    color: var(--ds-white);
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(44, 42, 40, 0.18);
   }
 
-  /* Tablet / mobile — shrink the circle and nudge it so text stays clear */
   @media (max-width: 991.98px) {
     .ds-hero {
-      min-height: 480px;
-      padding: 4rem 0;
+      min-height: 420px;
+      padding: 3rem 0;
     }
     .ds-hero__circle {
-      width: 420px;
-      height: 420px;
-      right: -170px;
+      width: 360px;
+      height: 360px;
+      right: -180px;
     }
   }
 
-  /* Phone — circle retreats to the lower-right, becomes a soft accent */
   @media (max-width: 575.98px) {
     .ds-hero {
-      min-height: 230px;
-      padding: 2.25rem 0;
+      height: 100px;
+      min-height: 100px;
+      padding: 8px 0;
     }
     .ds-hero__circle {
-      width: 220px;
-      height: 220px;
-      right: -110px;
-      top: auto;
-      bottom: -70px;
-      transform: none;
-      opacity: 0.75;
+      width: 150px;
+      height: 150px;
+      right: -85px;
+      top: 50%;
+      opacity: 0.25;
+      transform: translateY(-50%);
     }
-    .ds-hero__title { margin-bottom: 1rem; font-size: clamp(2rem, 8vw, 2.65rem); }
-    .ds-hero__eyebrow { margin-bottom: .75rem; font-size: .68rem; }
-    .ds-hero__cta { padding: .55rem 1.25rem; font-size: .88rem; }
+    .ds-hero__content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      max-width: none;
+    }
+    .ds-hero__eyebrow {
+      display: none;
+    }
+    .ds-hero__title {
+      max-width: 100%;
+      margin: 0;
+      font-size: clamp(1rem, 4.6vw, 1.2rem);
+      line-height: 1.05;
+      text-shadow: none;
+    }
+    .ds-hero__title-accent {
+      color: var(--ds-pink);
+    }
+    .ds-hero__cta {
+      padding: 0.55rem 0.75rem;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
   }
 </style>

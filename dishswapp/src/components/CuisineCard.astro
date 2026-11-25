@@ -66,6 +66,43 @@ const cards = [
      Bootstrap's grid + utilities do the heavy lifting; these are fallbacks. */
   .card-img-top {
     width: 100%;
+    height: auto !important;
+    aspect-ratio: 4 / 3;
+  }
+
+  .row.g-4 > div:nth-child(2) .card-img-top {
+    background-color: var(--ds-pink-soft) !important;
+  }
+
+  .row.g-4 > div:nth-child(3) .card-img-top {
+    background-color: var(--ds-oat) !important;
+  }
+
+  .row.g-4 > div:nth-child(4) .card-img-top {
+    background-color: var(--ds-teal-tint) !important;
+  }
+
+  .row.g-4 .card {
+    border: 1px solid var(--ds-border) !important;
+    border-radius: var(--ds-radius-md) !important;
+    box-shadow: var(--ds-shadow-sm) !important;
+    transition: box-shadow 180ms ease, transform 180ms ease;
+  }
+
+  .row.g-4 .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ds-shadow-md) !important;
+  }
+
+  .row.g-4 .card-title {
+    color: var(--ds-dark);
+    font: 600 1.375rem/1.27 var(--ds-heading-font);
+  }
+
+  .row.g-4 .card-text {
+    color: var(--ds-muted);
+    font-size: 0.8125rem;
+    line-height: 1.55;
   }
 
   @media (max-width: 767.98px) {
@@ -73,10 +110,11 @@ const cards = [
     .row.g-4 { display: flex; flex-wrap: nowrap; gap: 8px; margin: 0; overflow-x: auto; padding: 0 2px 5px; scrollbar-width: none; }
     .row.g-4::-webkit-scrollbar { display: none; }
     .row.g-4 > div { width: auto; flex: 0 0 auto; padding: 0; }
-    .row.g-4 .card { display: block; height: auto !important; border: 0 !important; border-radius: 999px !important; background: transparent; box-shadow: none !important; }
+    .row.g-4 .card, .row.g-4 .card:hover { display: block; height: auto !important; border: 0 !important; border-radius: 999px !important; background: transparent; box-shadow: none !important; transform: none; }
     .card-img-top, .card-text { display: none !important; }
     .row.g-4 .card-body { padding: 0 !important; }
-    .row.g-4 .card-title, .cuisine-all a { display: block; margin: 0 !important; padding: 7px 13px; border: 1px solid var(--ds-border); border-radius: 999px; background: white; color: var(--ds-teal); font: 600 .76rem var(--ds-body-font); }
-    .cuisine-all a { background: #fce6dd; color: #8c4939; }
+    .row.g-4 .card-title, .cuisine-all a { display: block; margin: 0 !important; padding: 7px 13px; border: 1px solid var(--ds-pink-soft); border-radius: 999px; background: var(--ds-pink-soft); color: var(--ds-dark); font: 600 .76rem var(--ds-body-font); }
+    .row.g-4 .card-title { font-size: .76rem; }
+    .cuisine-all a { background: var(--ds-teal); border-color: var(--ds-teal); color: var(--ds-white); }
   }
 </style>

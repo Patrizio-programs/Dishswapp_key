@@ -28,11 +28,11 @@ const monthName = new Date(new Date().getFullYear(), currentMonth - 1, 1)
 
 <style>
   .rotm-wrap { padding: 0 0 28px; }
-  .rotm-card { width: min(1100px, calc(100% - 40px)); min-height: 92px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 18px 20px; border-radius: 14px; background: #28545c; color: white; }
-  .rotm-eyebrow { margin: 0 0 5px; color: #f9b7a4; font: 500 .72rem 'JetBrains Mono', monospace; letter-spacing: .18em; text-transform: uppercase; }
+  .rotm-card { width: min(1320px, calc(100% - 24px)); min-height: 92px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 18px 20px; border-radius: var(--ds-radius-md); background: var(--ds-teal-dark); color: white; }
+  .rotm-eyebrow { margin: 0 0 5px; color: var(--ds-pink-soft); font: 500 .72rem 'JetBrains Mono', monospace; letter-spacing: .18em; text-transform: uppercase; }
   .rotm-card h2 { margin: 0; color: white; font: 700 1.35rem 'Playfair Display', Georgia, serif; }
   .rotm-description { margin: 5px 0 0; color: rgba(255,255,255,.82); font-size: .9rem; }
-  .rotm-link { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; background: #f9b7a4; color: #2c2a28; font-size: .86rem; font-weight: 700; text-decoration: none; }
-  .rotm-link:hover { background: white; color: #2c2a28; }
+  .rotm-link { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid rgba(255,255,255,.72); border-radius: var(--ds-radius-md); background: transparent; color: white; font-size: .86rem; font-weight: 600; text-decoration: none; transition: background-color 160ms ease, color 160ms ease; }
+  .rotm-link:hover { background: white; color: var(--ds-teal-dark); }
   @media (max-width: 600px) { .rotm-card { align-items: flex-start; flex-direction: column; gap: 14px; } }
 </style>
