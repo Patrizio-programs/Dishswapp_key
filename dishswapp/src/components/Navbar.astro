@@ -59,12 +59,34 @@ const searchIsCurrent = path.startsWith('/recipes') || path.startsWith('/cuisine
   </div>
 </nav>
 
+<header class="app-header">
+  <a class="navbar-brand" href="/">
+    <img src="/img/dishswapp-wordmark-on-dark.png" width="120px" alt="DishSwapp" />
+  </a>
+  <div class="app-account">
+    <Show when="signed-out">
+      <a href="/login" class="btn btn-auth rounded-pill px-3 py-1">Login</a>
+    </Show>
+    <Show when="signed-in">
+      <UserButton />
+    </Show>
+  </div>
+</header>
+
+<div class="app-flow-bar">
+  <a href="javascript:history.back()" class="app-back-btn"><i class="bi bi-arrow-left"></i></a>
+  <span class="app-flow-title">Back</span>
+</div>
+
 <nav class="mobile-tab-bar" aria-label="Main mobile navigation">
   <a href="/" aria-current={current('/')}>
     <i class="bi bi-house" aria-hidden="true"></i><span>Home</span>
   </a>
   <a href="/recipes/" aria-current={searchIsCurrent ? 'page' : undefined}>
     <i class="bi bi-search" aria-hidden="true"></i><span>Search</span>
+  </a>
+  <a href="/submit-recipe" aria-current={current('/submit-recipe')}>
+    <i class="bi bi-plus-circle" aria-hidden="true"></i><span>Submit</span>
   </a>
   <a href="/cookbook" aria-current={current('/cookbook')}>
     <i class="bi bi-journal-bookmark" aria-hidden="true"></i><span>Cookbook</span>
@@ -221,21 +243,60 @@ const searchIsCurrent = path.startsWith('/recipes') || path.startsWith('/cuisine
     }
   }
 
+  /* App Mode Styles */
+  :global(html.app-mode) .custom-navbar {
+    display: none;
+  }
+
+  :global(html.app-mode) .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background-color: var(--nav-bg);
+    color: white;
+  }
+
+  .app-header { display: none; }
+
+  :global(html.app-mode) .mobile-tab-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: rgba(251, 247, 241, 0.98);
+    border-top: 1px solid var(--ds-border);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  :global(html.app-mode) body {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .app-flow-bar {
+    display: none;
+  }
+
+  :global(html.app-mode) .app-flow-bar {
+    display: flex !important;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 16px;
+    background: var(--ds-cream);
+    border-bottom: 1px solid var(--ds-border);
+  }
+
+  .app-back-btn {
+    color: var(--ds-teal);
+    font-size: 1.2rem;
+    text-decoration: none;
+  }
+
   /* Custom icon filter for Bootstrap navbar-toggler icon on teal background */
   .navbar-toggler-icon {
     filter: invert(1);
-  }
-
-  .mobile-tab-bar { display: none; }
-
-  @media (max-width: 767.98px) {
-    :global(body) { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
-    .custom-navbar { padding-block: 10px !important; }
-    .custom-navbar .navbar-brand img { width: 122px; height: auto; }
-    .mobile-tab-bar { position: fixed; z-index: 1050; inset: auto 0 0; display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 8px calc(7px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--ds-border); background: rgba(251,247,241,.98); box-shadow: 0 -4px 18px rgba(44,42,40,.08); }
-    .mobile-tab-bar a { display: flex; min-height: 48px; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: var(--ds-muted); font-size: .68rem; line-height: 1.2; text-decoration: none; }
-    .mobile-tab-bar i { font-size: 1.2rem; line-height: 1.2; }
-    .mobile-tab-bar a[aria-current='page'] { color: var(--ds-teal); font-weight: 700; }
-    .mobile-tab-bar a:focus-visible { outline: 2px solid var(--ds-teal); outline-offset: -2px; border-radius: 8px; }
   }
 </style>
