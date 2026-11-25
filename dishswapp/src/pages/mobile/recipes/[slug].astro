@@ -1,0 +1,559 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import { supabase, type Recipe } from '../../lib/supabase';
+
+const slug = Astro.params.slug;
+
+let recipe: Recipe | null = null;
+
+if (slug) {
+  const { data, error } = await supabase
+    .from('recipes')
+    .select('*')
+    .eq('slug', slug)
+    .eq('status', 'live')
+    .maybeSingle();
+
+  if (error) {
+    console.error('Recipe lookup failed:', error);
+  }
+
+  recipe = (data as Recipe | null) ?? null;
+}
+
+if (!recipe) {
+  Astro.response.status = 404;
+}
+
+const { isAuthenticated } = Astro.locals.auth();
+const signedInUser = isAuthenticated ? await Astro.locals.currentUser() : null;
+let isSaved = false;
+if (recipe && signedInUser) {
+  const { data: savedRow, error: savedError } = await supabase.from('saved_recipes')
+    .select('recipe_id').eq('user_id', signedInUser.id).eq('recipe_id', recipe.id).maybeSingle();
+  if (savedError) console.error('Could not check saved recipe state:', savedError);
+  isSaved = Boolean(savedRow);
+}
+const savedNotice = Astro.url.searchParams.get('saved');
+
+// Map database columns (snake_case, null) to the names the template uses
+// (camelCase, undefined) so the markup below doesn't need to change.
+const title = recipe?.title ?? '';
+const image = recipe?.image_url ?? undefined;
+const tags = recipe?.tags ?? [];
+const difficulty = recipe?.difficulty ?? undefined;
+const description = recipe?.description ?? undefined;
+const author = recipe?.author ?? undefined;
+const prepTime = recipe?.prep_time ?? undefined;
+const cookTime = recipe?.cook_time ?? undefined;
+const servings = recipe?.servings ?? undefined;
+const ingredients = recipe?.ingredients ?? [];
+const instructions = recipe?.instructions ?? [];
+
+const totalTime = (prepTime ?? 0) + (cookTime ?? 0);
+
+const displayDifficulty =
+  difficulty && difficulty !== 'none'
+    ? difficulty.charAt(0).toUpperCase() + difficulty.slice(1)
+    : null;
+
+// ---- Share-card text ------------------------------------------------------
+const cuisineTag = tags[0];
+const metaDescription = recipe
+  ? description ??
+    [
+      `${title}${cuisineTag ? `, a ${cuisineTag} recipe` : ' recipe'} shared on DishSwapp`,
+      author ? `by ${author}` : null,
+    ]
+      .filter(Boolean)
+      .join(' ') +
+      `. ${ingredients.length} ingredients` +
+      (totalTime > 0 ? `, ${totalTime} min` : '') +
+      (servings ? `, serves ${servings}` : '') +
+      '.'
+  : 'This recipe could not be found on DishSwapp.';
+
+// ---- schema.org Recipe (rich results in Google) ----------------------------
+const minutes = (n?: number) => (n ? `PT${n}M` : undefined);
+const recipeJsonLd = recipe
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'Recipe',
+      name: title,
+      description: metaDescription,
+      image: image ? [image] : undefined,
+      author: author ? { '@type': 'Person', name: author } : undefined,
+      datePublished: recipe.created_at,
+      prepTime: minutes(prepTime),
+      cookTime: minutes(cookTime),
+      totalTime: minutes(totalTime || undefined),
+      recipeYield: servings ? `${servings} servings` : undefined,
+      keywords: tags.length ? tags.join(', ') : undefined,
+      recipeCuisine: cuisineTag,
+      recipeIngredient: ingredients,
+      recipeInstructions: instructions.map((text) => ({
+        '@type': 'HowToStep',
+        text,
+      })),
+    }
+  : undefined;
+---
+
+<Layout
+  title={recipe ? `${title} | DishSwapp` : 'Recipe Not Found | DishSwapp'}
+  description={metaDescription}
+  ogImage={image}
+>
+  {recipeJsonLd && <script type="application/ld+json" set:html={JSON.stringify(recipeJsonLd)} />}
+  <Navbar />
+  <div class="app-flow-bar-placeholder"></div>
+
+  <main>
+    {recipe ? (
+      <div class="recipe-page ds-container">
+
+        <a href="/recipes/" class="back-link">
+          <i class="bi bi-arrow-left"></i>
+          Back to recipes
+        </a>
+
+        <section class="recipe-hero">
+
+          <div class="recipe-hero__image">
+            {image ? (
+              <img src={image} alt={title} />
+            ) : (
+              <div class="recipe-placeholder">
+                <img src="/img/dishswapp-symbol.svg" alt="" width="120" height="120" />
+              </div>
+            )}
+          </div>
+
+          <div class="recipe-hero__content">
+
+            <div class="recipe-tags">
+              {tags.map((tag) => (
+                <span class="recipe-tag">{tag}</span>
+              ))}
+
+              {displayDifficulty && (
+                <span class="recipe-difficulty">
+                  {displayDifficulty}
+                </span>
+              )}
+            </div>
+
+            <h1>{title}</h1>
+
+            {description && (
+              <p class="recipe-description">{description}</p>
+            )}
+
+            <div class="recipe-meta">
+
+              {prepTime !== undefined && (
+                <div>
+                  <i class="bi bi-clock"></i>
+                  <span>Prep time</span>
+                  <strong>{prepTime} min</strong>
+                </div>
+              )}
+
+              {cookTime !== undefined && (
+                <div>
+                  <i class="bi bi-fire"></i>
+                  <span>Cook time</span>
+                  <strong>{cookTime} min</strong>
+                </div>
+              )}
+
+              {(prepTime !== undefined || cookTime !== undefined) && (
+                <div>
+                  <i class="bi bi-hourglass-split"></i>
+                  <span>Total time</span>
+                  <strong>{totalTime} min</strong>
+                </div>
+              )}
+
+              {servings !== undefined && (
+                <div>
+                  <i class="bi bi-people"></i>
+                  <span>Servings</span>
+                  <strong>{servings}</strong>
+                </div>
+              )}
+
+            </div>
+
+            {author && (
+              <p class="recipe-author">
+                Recipe by <strong>{author}</strong>
+              </p>
+            )}
+
+        <div class="recipe-actions">
+          <button type="button" id="print-recipe" class="action-button">
+            <i class="bi bi-printer"></i>
+            Print Recipe
+          </button>
+
+          <button type="button" id="share-recipe" class="action-button">
+            <i class="bi bi-share"></i>
+            Share Recipe
+          </button>
+        </div>
+
+      {signedInUser ? <form class="save-recipe-form" method="POST" action="/api/saved-recipes">
+        <input type="hidden" name="recipe_id" value={recipe.id} />
+        <input type="hidden" name="destination" value="recipe" />
+        <input type="hidden" name="action" value={isSaved ? 'remove' : 'save'} />
+        <button type="submit" class:list={['save-recipe-button', isSaved && 'is-saved']}>
+          <i class:list={['bi', isSaved ? 'bi-bookmark-check-fill' : 'bi-bookmark-plus']} aria-hidden="true"></i>
+          {isSaved ? 'Saved to your recipes' : 'Save recipe'}
+        </form> : <a class="save-recipe-button" href="/login"><i class="bi bi-bookmark-plus" aria-hidden="true"></i> Sign in to save</a>}
+        {savedNotice === '1' && <p class="saved-feedback" role="status">Recipe added to your saved list.</p>}
+        {savedNotice === '0' && <p class="saved-feedback" role="status">Recipe removed from your saved list.</p>}
+
+        <p id="share-status" class="share-status" aria-live="polite"></p>
+
+
+          </div>
+        </section>
+
+        <section class="recipe-body">
+
+          <div class="ingredients-section">
+            <h2>Ingredients</h2>
+
+            <ul class="ingredients-list">
+              {ingredients.map((ingredient) => (
+                <li>
+                  <i class="bi bi-check2"></i>
+                  {ingredient}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="instructions-section">
+            <h2>Instructions</h2>
+
+            <ol class="instructions-list">
+              {instructions.map((instruction) => (
+                <li>{instruction}</li>
+              ))}
+            </ol>
+          </div>
+
+          {notes && (
+            <div class="recipe-notes">
+              <h2>Notes</h2>
+              <p>{notes}</p>
+            </div>
+          )}
+
+        </section>
+      </div>
+    ) : (
+      <section class="not-found ds-container">
+        <img
+          src="/img/dishswapp-symbol.svg"
+          alt=""
+          width="72"
+          height="72"
+          class="not-found__logo"
+        />
+        <h1>Recipe not found</h1>
+        <p>Sorry, we couldn't find the recipe you're looking for.</p>
+        <a href="/recipes/" class="back-button">Browse recipes</a>
+      </section>
+    )}
+  </main>
+
+  <Footer />
+</Layout>
+
+<script>
+  const printButton = document.querySelector('#print-recipe');
+  const shareButton = document.querySelector('#share-recipe');
+  const shareStatus = document.querySelector('#share-status');
+
+  printButton?.addEventListener('click', () => {
+    window.print();
+  });
+
+  shareButton?.addEventListener('click', async () => {
+    const shareData = {
+      title: document.title,
+      text: 'Check out this recipe on DishSwapp!',
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(window.location.href);
+
+        if (shareStatus) {
+          shareStatus.textContent = 'Recipe link copied!';
+        }
+      } else {
+        window.prompt('Copy this recipe link:', window.location.href);
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') {
+        if (shareStatus) {
+          shareStatus.textContent = 'Unable to share the recipe. Please try again.';
+        }
+      }
+    }
+  });
+</script>
+
+<style>
+  .recipe-page {
+    padding-top: 35px;
+    padding-bottom: 80px;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ds-teal);
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 30px;
+  }
+
+  .back-link:hover {
+    color: var(--ds-spice);
+  }
+
+  .recipe-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 25px;
+    align-items: center;
+    margin-bottom: 40px;
+  }
+
+  .recipe-hero__image {
+    aspect-ratio: 16 / 11;
+    overflow: hidden;
+    border-radius: var(--ds-radius-lg);
+    background: var(--ds-pink);
+  }
+
+  .recipe-hero__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .recipe-placeholder {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, var(--ds-cream), #EFE5D4);
+  }
+
+  .recipe-placeholder img {
+    width: 120px;
+    height: 120px;
+  }
+
+  .recipe-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .recipe-tag,
+  .recipe-difficulty {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .recipe-tag {
+    background: #E8F0EE;
+    color: var(--ds-teal);
+  }
+
+  .recipe-difficulty {
+    background: #FFF0E6;
+    color: var(--ds-spice);
+  }
+
+  .recipe-hero h1 {
+    font-family: var(--ds-heading-font);
+    font-size: 2.3rem;
+    color: var(--ds-dark);
+    margin-bottom: 15px;
+  }
+
+  .recipe-description {
+    color: var(--ds-muted);
+    line-height: 1.7;
+    font-size: 1rem;
+    margin-bottom: 25px;
+  }
+
+  .recipe-meta {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 22px 0;
+    border-top: 1px solid var(--ds-border);
+    border-bottom: 1px solid var(--ds-border);
+  }
+
+  .recipe-meta div {
+    display: grid;
+    grid-template-columns: 25px 1fr;
+    align-items: center;
+    column-gap: 8px;
+  }
+
+  .recipe-meta i {
+    grid-row: span 2;
+    color: var(--ds-teal);
+    font-size: 1.2rem;
+  }
+
+  .recipe-meta span {
+    color: var(--ds-muted);
+    font-size: 0.8rem;
+  }
+
+  .recipe-meta strong {
+    color: var(--ds-dark);
+    font-size: 0.95rem;
+  }
+
+  .recipe-author {
+    margin-top: 20px;
+    color: var(--ds-muted);
+  }
+
+  .recipe-body {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .recipe-body h2 {
+    font-family: var(--ds-heading-font);
+    font-size: 1.7rem;
+    margin-bottom: 20px;
+    color: var(--ds-dark);
+  }
+
+  .ingredients-section,
+  .instructions-section {
+    margin-bottom: 40px;
+  }
+
+  .ingredients-list,
+  .instructions-list {
+    padding: 0;
+    margin: 0;
+  }
+
+  .ingredients-list {
+    list-style: none;
+  }
+
+  .ingredients-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--ds-border);
+    color: var(--ds-dark);
+    line-height: 1.6;
+  }
+
+  .ingredients-list i {
+    color: var(--ds-teal);
+    font-size: 1.1rem;
+  }
+
+  .instructions-list {
+    list-style: none;
+    counter-reset: steps;
+  }
+
+  .instructions-list li {
+    counter-increment: steps;
+    position: relative;
+    padding: 0 0 20px 44px;
+    margin-bottom: 15px;
+    line-height: 1.8;
+    color: var(--ds-dark);
+  }
+
+  .instructions-list li::before {
+    content: counter(steps);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--ds-teal);
+    color: white;
+    font-weight: 600;
+  }
+
+  .recipe-notes {
+    background: var(--ds-cream);
+    border-radius: var(--ds-radius-md);
+    padding: 20px;
+  }
+
+  .recipe-notes h2 {
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+  }
+
+  .recipe-notes p {
+    margin: 0;
+    line-height: 1.7;
+    color: var(--ds-muted);
+  }
+
+  .not-found {
+    padding-top: 80px;
+    padding-bottom: 80px;
+    text-align: center;
+  }
+
+  .not-found__logo {
+    display: block;
+    margin: 0 auto 12px;
+  }
+
+  .not-found h1 {
+    font-family: var(--ds-heading-font);
+  }
+
+  .back-button {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: var(--ds-teal);
+    color: white;
+    border-radius: var(--ds-radius-sm);
+    text-decoration: none;
+  }
+</style>

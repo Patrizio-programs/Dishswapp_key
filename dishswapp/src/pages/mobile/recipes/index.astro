@@ -1,0 +1,30 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import { supabase, type Recipe } from '../../lib/supabase';
+
+const pageSize = 9;
+const searchTerm = (Astro.url.searchParams.get('q') ?? '').slice(0, 100).trim();
+const selectedCuisine = Astro.url.searchParams.get('cuisine') ?? '';
+const requestedDifficulty = Astro.url.searchParams.get('difficulty') ?? '';
+const selectedDifficulty = (['easy', 'intermediate', 'hard'] as const).find((value) => value === requestedDifficulty) ?? '';
+const requestedPage = Math.max(1, Number.parseInt(Astro.url.searchParams.get('page') ?? '1', 10) || 1);
+
+let query = supabase.from('recipes').select('*', { count: 'exact' })
+  .eq('status', 'live').order('title', { ascending: true });
+if (searchTerm) query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+if (selectedCuisine) query = query.contains('tags', [selectedCuisine]);
+if (selectedDifficulty) query = query.eq('difficulty', selectedDifficulty);
+
+const { data, error, count } = await query.range((requestedPage - 1) * pageSize, requestedPage * pageSize - 1);
+
+const recipes: Recipe[] = data ?? [];
+const totalRecipes = count ?? 0;
+const totalPages = Math.max(1, Math.ceil(totalRecipes / pageSize));
+const currentPage = Math.min(requestedPage, totalPages);
+if (requestedPage > totalPages) {
+  const redirectUrl = new URL(Astro.url);
+  redirectUrl.searchParams.set('page', String(totalPages));
+  return Astro.redirect(`${redirectUrl.pathname}${redirectUrl.search}`);
+}

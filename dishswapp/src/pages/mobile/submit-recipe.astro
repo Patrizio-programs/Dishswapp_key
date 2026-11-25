@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import { Show } from '@clerk/astro/components';
+
+const { isAuthenticated } = Astro.locals.auth();
+
+const user = isAuthenticated
+  ? await Astro.locals.currentUser()
+  : null;
+
+// Get the best available display name
+const authorName = user
+  ? [
+      user.firstName,
+      user.lastName,
+    ].filter(Boolean).join(" ") ||
+    user.username ||
+    user.primaryEmailAddress?.emailAddress ||
+    "DishSwapp member"
+  : "";
