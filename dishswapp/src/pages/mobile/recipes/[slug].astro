@@ -1,8 +1,8 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Navbar from '../components/Navbar.astro';
-import Footer from '../components/Footer.astro';
-import { supabase, type Recipe } from '../../lib/supabase';
+import Layout from '../../../layouts/Layout.astro';
+import Navbar from '../../../components/Navbar.astro';
+import Footer from '../../../components/Footer.astro';
+import { supabase, type Recipe } from '../../../lib/supabase';
 
 const slug = Astro.params.slug;
 
@@ -51,6 +51,7 @@ const cookTime = recipe?.cook_time ?? undefined;
 const servings = recipe?.servings ?? undefined;
 const ingredients = recipe?.ingredients ?? [];
 const instructions = recipe?.instructions ?? [];
+const notes = (recipe as (Recipe & { notes?: string | null }) | null)?.notes ?? undefined;
 
 const totalTime = (prepTime ?? 0) + (cookTime ?? 0);
 
@@ -212,6 +213,7 @@ const recipeJsonLd = recipe
         <button type="submit" class:list={['save-recipe-button', isSaved && 'is-saved']}>
           <i class:list={['bi', isSaved ? 'bi-bookmark-check-fill' : 'bi-bookmark-plus']} aria-hidden="true"></i>
           {isSaved ? 'Saved to your recipes' : 'Save recipe'}
+        </button>
         </form> : <a class="save-recipe-button" href="/login"><i class="bi bi-bookmark-plus" aria-hidden="true"></i> Sign in to save</a>}
         {savedNotice === '1' && <p class="saved-feedback" role="status">Recipe added to your saved list.</p>}
         {savedNotice === '0' && <p class="saved-feedback" role="status">Recipe removed from your saved list.</p>}

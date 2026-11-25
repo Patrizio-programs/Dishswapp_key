@@ -1,9 +1,15 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Navbar from '../components/Navbar.astro';
-import Footer from '../components/Footer.astro';
-import Hero from '../components/Hero.astro';
-import CuisineCard from '../components/CuisineCard.astro';
-import RecipeOfTheMonth from '../components/RecipeOfTheMonth.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import Hero from '../../components/Hero.astro';
+import CuisineCard from '../../components/CuisineCard.astro';
+import RecipeOfTheMonth from '../../components/RecipeOfTheMonth.astro';
 
 const SITE = "https://dishswapp.pgmja.com";
+---
+
+<Navbar />
+<Hero />
+<CuisineCard />
+<RecipeOfTheMonth />
+<Footer />

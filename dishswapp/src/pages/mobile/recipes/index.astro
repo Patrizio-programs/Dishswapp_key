@@ -1,9 +1,9 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Navbar from '../components/Navbar.astro';
-import Footer from '../components/Footer.astro';
-import { supabase } from '../../lib/supabase';
-import type { Recipe } from '../../lib/supabase';
+import Layout from '../../../layouts/Layout.astro';
+import Navbar from '../../../components/Navbar.astro';
+import Footer from '../../../components/Footer.astro';
+import { supabase } from '../../../lib/supabase';
+import type { Recipe } from '../../../lib/supabase';
 
 const pageSize = 9;
 const searchTerm = (Astro.url.searchParams.get('q') ?? '').slice(0, 100).trim();
@@ -29,3 +29,4 @@ if (requestedPage > totalPages) {
   redirectUrl.searchParams.set('page', String(totalPages));
   return Astro.redirect(`${redirectUrl.pathname}${redirectUrl.search}`);
 }
+---

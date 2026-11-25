@@ -1,9 +1,4 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Navbar from '../components/Navbar.astro';
-import Footer from '../components/Footer.astro';
-import { Show } from '@clerk/astro/components';
-
 const { isAuthenticated } = Astro.locals.auth();
 
 const user = isAuthenticated
@@ -20,3 +15,4 @@ const authorName = user
     user.primaryEmailAddress?.emailAddress ||
     "DishSwapp member"
   : "";
+---
