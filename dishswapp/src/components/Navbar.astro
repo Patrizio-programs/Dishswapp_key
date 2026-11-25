@@ -280,6 +280,12 @@ const searchIsCurrent = path.startsWith('/recipes') || path.startsWith('/cuisine
     display: none;
   }
 
+  /* Hide the mobile tab bar on desktop; it's only shown inside app mode
+     (mobile WebView) via the :global(html.app-mode) rule below. */
+  .mobile-tab-bar {
+    display: none;
+  }
+
   :global(html.app-mode) .app-flow-bar {
     display: flex !important;
     align-items: center;
