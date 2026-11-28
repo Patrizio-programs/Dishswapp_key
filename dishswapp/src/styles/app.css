@@ -128,11 +128,18 @@ html.app-mode body {
   overscroll-behavior-y: none;
 }
 
-html.app-mode header,
-html.app-mode nav,
-html.app-mode footer {
-  user-select: auto;
+html.app-mode .custom-navbar,
+html.app-mode .site-footer {
+  display: none !important;
 }
+
+@media (max-width: 768px) {
+  .custom-navbar,
+  .site-footer {
+    display: none !important;
+  }
+}
+
 
 html.app-mode .app-header,
 html.app-mode .app-flow-bar,

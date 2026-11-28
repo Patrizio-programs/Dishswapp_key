@@ -1,4 +1,5 @@
 ---
+import Layout from '../../layouts/Layout.astro';
 import Hero from '../../components/Hero.astro';
 import CuisineCard from '../../components/CuisineCard.astro';
 import RecipeOfTheMonth from '../../components/RecipeOfTheMonth.astro';
@@ -6,7 +7,8 @@ import RecipeOfTheMonth from '../../components/RecipeOfTheMonth.astro';
 const SITE = "https://dishswapp.pgmja.com";
 ---
 
-
-<Hero />
-<CuisineCard />
-<RecipeOfTheMonth />
+<Layout title="DishSwapp Mobile" description="Collect, collaborate, cook.">
+  <Hero />
+  <CuisineCard />
+  <RecipeOfTheMonth />
+</Layout>

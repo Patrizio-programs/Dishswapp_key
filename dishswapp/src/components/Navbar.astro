@@ -4,28 +4,12 @@ import { Show, UserButton } from "@clerk/astro/components"
 
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const current = (href: string) => path === href || (href !== '/' && path.startsWith(`${href}/`)) ? 'page' : undefined;
-const searchIsCurrent = path === '/recipes' || path.startsWith('/recipes/');
-
-// Route classification: top-level routes don't start with /recipes, /submit-recipe, /edit, /login
-const isTopLevel = !path.startsWith('/recipes') && !path.startsWith('/submit-recipe') && !path.startsWith('/edit') && !path.startsWith('/login') && path !== '/';
-
-// Keep the mobile tab bar available on the submit flow as well.
-const showMobileTabBar = !path.startsWith('/recipes') && !path.startsWith('/edit') && !path.startsWith('/login');
-const isFlow = path.startsWith('/recipes') || path.startsWith('/submit-recipe') || path.startsWith('/edit') || path.startsWith('/login');
-const isLogin = path === '/login' || path.startsWith('/login/');
 
 // Desktop navbar links — visible in browser mode
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
   { href: '/donate', label: 'Donate' },
-];
-
-// Flow route links that appear in the app navbar
-const flowLinks = [
-  { href: '/recipes', label: 'Recipes' },
-  { href: '/cookbook', label: 'Cookbook' },
-  { href: '/dashboard', label: 'Profile' },
 ];
 ---
 
@@ -74,49 +58,3 @@ const flowLinks = [
     </div>
   </div>
 </nav>
-
-<!-- App header: shown only on top-level routes in app mode -->
-{isTopLevel && (
-<header class="app-header d-lg-none" aria-label="App header">
-  <a class="navbar-brand" href="/">
-    <img src="/img/dishswapp-wordmark-on-dark.png" width="120px" alt="DishSwapp" />
-  </a>
-  <div class="app-account">
-    <Show when="signed-out">
-      <a href="/login" class="btn btn-auth rounded-pill px-3 py-1">Login</a>
-    </Show>
-    <Show when="signed-in">
-      <UserButton />
-    </Show>
-  </div>
-</header>
-)}
-
-<!-- App flow bar: shown only on flow routes in app mode, not on login -->
-{isFlow && !isLogin && (
-<div class="app-flow-bar d-lg-none" aria-label="App flow-bar">
-  <a href="javascript:history.back()" class="app-back-btn"><i class="bi bi-arrow-left"></i></a>
-  <span class="app-flow-title">Back</span>
-</div>
-)}
-
-<!-- Mobile tab bar: shown on all top-level routes including home -->
-{showMobileTabBar && (
-<nav class="mobile-tab-bar d-lg-none" aria-label="Main mobile navigation">
-  <a href="/" aria-current={current('/')}>
-    <i class="bi bi-house" aria-hidden="true"></i><span>Home</span>
-  </a>
-  <a href="/recipes/" aria-current={searchIsCurrent ? 'page' : undefined}>
-    <i class="bi bi-search" aria-hidden="true"></i><span>Search</span>
-  </a>
-  <a href="/submit-recipe" aria-current={current('/submit-recipe')}>
-    <i class="bi bi-plus-circle" aria-hidden="true"></i><span>Submit</span>
-  </a>
-  <a href="/cookbook" aria-current={current('/cookbook')}>
-    <i class="bi bi-journal-bookmark" aria-hidden="true"></i><span>Cookbook</span>
-  </a>
-  <a href="/dashboard" aria-current={current('/dashboard')}>
-    <i class="bi bi-person" aria-hidden="true"></i><span>Profile</span>
-  </a>
-</nav>
-)}

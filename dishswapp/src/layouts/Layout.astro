@@ -2,6 +2,7 @@
 import '../styles.css';
 import '../styles/app.css';
 import Analytics from '@vercel/analytics/astro';
+import MobileNav from '../components/mobile/MobileNav.astro';
 const SITE = "https://dishswapp.pgmja.com";
 
 interface Props {
@@ -88,6 +89,7 @@ const canonicalUrl = `${SITE}${canonicalPath}`;
   </head>
 
   <body>
+    <MobileNav />
     <slot />
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
