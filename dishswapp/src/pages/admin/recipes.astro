@@ -80,6 +80,7 @@ const makePageHref = (page: number) => {
               <div class="admin-fields">
             <label>Title<input name="title" value={recipe.title} maxlength="100" required /></label>
             <label>Author<input name="author" value={recipe.author ?? ''} /></label>
+            <label>Status<select name="status"><option value="pending" selected={recipe.status === 'pending'}>Pending</option><option value="live" selected={recipe.status === 'live'}>Live</option></select><small>Live recipes appear on the site; pending recipes are hidden from visitors.</small></label>
             <label class="wide">Description<textarea name="description" rows="2">{recipe.description ?? ''}</textarea></label>
             <label>Tags (comma separated)<input name="tags" value={(recipe.tags ?? []).join(', ')} /></label>
             <label>Difficulty<select name="difficulty"><option value="none" selected={recipe.difficulty === 'none'}>Not specified</option><option value="easy" selected={recipe.difficulty === 'easy'}>Easy</option><option value="intermediate" selected={recipe.difficulty === 'intermediate'}>Intermediate</option><option value="hard" selected={recipe.difficulty === 'hard'}>Hard</option></select></label>
